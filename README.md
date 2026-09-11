@@ -4,6 +4,8 @@ Gasport swaps an ERC-20 token on one EVM chain for native gas on another. It com
 
 The app can sponsor source-chain gas through Alchemy when the wallet does not have enough native gas. Demo mode keeps quotes and balances live but stops before transaction submission.
 
+![Gasport interface showing a USDC to ETH gas quote](docs/images/gasport-interface.png)
+
 ## Getting started
 
 You need Node.js 20.9 or newer and pnpm 10.
