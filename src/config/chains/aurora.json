@@ -1,0 +1,16 @@
+{
+  "id": 1313161554,
+  "key": "aurora",
+  "name": "Aurora",
+  "shortName": "Aurora",
+  "nearBlockchain": "aurora",
+  "symbol": "ETH",
+  "decimals": 18,
+  "accent": "#70d44b",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/aurora/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/aurora/info",
+  "trustWalletSlug": "aurora",
+  "explorerUrl": "https://aurorascan.dev",
+  "publicRpcUrl": "https://mainnet.aurora.dev",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

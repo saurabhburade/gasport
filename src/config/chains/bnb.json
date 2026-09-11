@@ -1,0 +1,17 @@
+{
+  "id": 56,
+  "key": "bnb",
+  "name": "BNB Chain",
+  "shortName": "BNB",
+  "nearBlockchain": "bsc",
+  "symbol": "BNB",
+  "decimals": 18,
+  "accent": "#f3ba2f",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/smartchain/info",
+  "trustWalletSlug": "smartchain",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:56_11111111111111111111",
+  "explorerUrl": "https://bscscan.com",
+  "publicRpcUrl": "https://56.rpc.thirdweb.com",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

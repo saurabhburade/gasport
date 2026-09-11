@@ -1,0 +1,17 @@
+{
+  "id": 8453,
+  "key": "base",
+  "name": "Base",
+  "shortName": "Base",
+  "nearBlockchain": "base",
+  "symbol": "ETH",
+  "decimals": 18,
+  "accent": "#0052ff",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/base/info",
+  "trustWalletSlug": "base",
+  "intentsAssetId": "nep141:base.omft.near",
+  "explorerUrl": "https://basescan.org",
+  "publicRpcUrl": "https://base.drpc.org",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

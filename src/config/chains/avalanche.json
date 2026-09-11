@@ -1,0 +1,17 @@
+{
+  "id": 43114,
+  "key": "avalanche",
+  "name": "Avalanche",
+  "shortName": "Avalanche",
+  "nearBlockchain": "avax",
+  "symbol": "AVAX",
+  "decimals": 18,
+  "accent": "#e84142",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/avalanchec/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/avalanchec/info",
+  "trustWalletSlug": "avalanchec",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:43114_11111111111111111111",
+  "explorerUrl": "https://snowtrace.io",
+  "publicRpcUrl": "https://api.avax.network/ext/bc/C/rpc",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

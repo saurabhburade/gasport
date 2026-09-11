@@ -1,0 +1,17 @@
+{
+  "id": 137,
+  "key": "polygon",
+  "name": "Polygon",
+  "shortName": "Polygon",
+  "nearBlockchain": "pol",
+  "symbol": "POL",
+  "decimals": 18,
+  "accent": "#8247e5",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/polygon/info",
+  "trustWalletSlug": "polygon",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:137_11111111111111111111",
+  "explorerUrl": "https://polygonscan.com",
+  "publicRpcUrl": "https://polygon.drpc.org",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

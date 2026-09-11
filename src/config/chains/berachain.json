@@ -1,0 +1,16 @@
+{
+  "id": 80094,
+  "key": "berachain",
+  "name": "Berachain",
+  "shortName": "Bera",
+  "nearBlockchain": "bera",
+  "symbol": "BERA",
+  "decimals": 18,
+  "accent": "#f47226",
+  "logoURI": "https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/chains/berachain.svg",
+  "logoSourceUrl": "https://github.com/lifinance/types/blob/main/src/assets/icons/chains/berachain.svg",
+  "intentsAssetId": "nep141:bera.omft.near",
+  "explorerUrl": "https://berascan.com",
+  "publicRpcUrl": "https://rpc.berachain.com",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

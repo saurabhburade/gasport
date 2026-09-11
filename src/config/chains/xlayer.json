@@ -1,0 +1,16 @@
+{
+  "id": 196,
+  "key": "xlayer",
+  "name": "X Layer",
+  "shortName": "X Layer",
+  "nearBlockchain": "xlayer",
+  "symbol": "OKB",
+  "decimals": 18,
+  "accent": "#111111",
+  "logoURI": "https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/chains/xlayer.svg",
+  "logoSourceUrl": "https://github.com/lifinance/types/blob/main/src/assets/icons/chains/xlayer.svg",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:196_11111111111111111111",
+  "explorerUrl": "https://www.oklink.com/xlayer",
+  "publicRpcUrl": "https://xlayerrpc.okx.com",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

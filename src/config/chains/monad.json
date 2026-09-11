@@ -1,0 +1,17 @@
+{
+  "id": 143,
+  "key": "monad",
+  "name": "Monad",
+  "shortName": "Monad",
+  "nearBlockchain": "monad",
+  "symbol": "MON",
+  "decimals": 18,
+  "accent": "#836ef9",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/monad/info/square_logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/monad/info",
+  "trustWalletSlug": "monad",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:143_11111111111111111111",
+  "explorerUrl": "https://monadscan.com",
+  "publicRpcUrl": "https://rpc.monad.xyz",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

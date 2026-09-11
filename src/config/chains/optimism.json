@@ -1,0 +1,17 @@
+{
+  "id": 10,
+  "key": "optimism",
+  "name": "Optimism",
+  "shortName": "Optimism",
+  "nearBlockchain": "op",
+  "symbol": "ETH",
+  "decimals": 18,
+  "accent": "#f0444d",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/optimism/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/optimism/info",
+  "trustWalletSlug": "optimism",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:10_11111111111111111111",
+  "explorerUrl": "https://optimistic.etherscan.io",
+  "publicRpcUrl": "https://optimism.drpc.org",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

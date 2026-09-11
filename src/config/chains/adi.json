@@ -1,0 +1,16 @@
+{
+  "id": 36900,
+  "key": "adi",
+  "name": "ADI Chain",
+  "shortName": "ADI",
+  "nearBlockchain": "adi",
+  "symbol": "ADI",
+  "decimals": 18,
+  "accent": "#00a6a6",
+  "logoURI": "https://avatars.githubusercontent.com/u/232034195?v=4",
+  "logoSourceUrl": "https://github.com/ADI-Foundation-Labs",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:36900_11111111111111111111",
+  "explorerUrl": "https://explorer.adifoundation.ai",
+  "publicRpcUrl": "https://rpc.adifoundation.ai",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

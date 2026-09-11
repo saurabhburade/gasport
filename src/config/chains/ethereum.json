@@ -1,0 +1,17 @@
+{
+  "id": 1,
+  "key": "ethereum",
+  "name": "Ethereum",
+  "shortName": "Ethereum",
+  "nearBlockchain": "eth",
+  "symbol": "ETH",
+  "decimals": 18,
+  "accent": "#627eea",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/ethereum/info",
+  "trustWalletSlug": "ethereum",
+  "intentsAssetId": "nep141:eth.omft.near",
+  "explorerUrl": "https://etherscan.io",
+  "publicRpcUrl": "https://eth.drpc.org",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

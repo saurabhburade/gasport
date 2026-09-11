@@ -1,0 +1,17 @@
+{
+  "id": 534352,
+  "key": "scroll",
+  "name": "Scroll",
+  "shortName": "Scroll",
+  "nearBlockchain": "scroll",
+  "symbol": "ETH",
+  "decimals": 18,
+  "accent": "#ffeeda",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/scroll/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/scroll/info",
+  "trustWalletSlug": "scroll",
+  "intentsAssetId": "nep245:v2_1.omni.hot.tg:534352_11111111111111111111",
+  "explorerUrl": "https://scrollscan.com",
+  "publicRpcUrl": "https://rpc.scroll.io",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

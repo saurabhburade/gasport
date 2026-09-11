@@ -1,0 +1,17 @@
+{
+  "id": 42161,
+  "key": "arbitrum",
+  "name": "Arbitrum",
+  "shortName": "Arbitrum",
+  "nearBlockchain": "arb",
+  "symbol": "ETH",
+  "decimals": 18,
+  "accent": "#4d9cff",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/arbitrum/info",
+  "trustWalletSlug": "arbitrum",
+  "intentsAssetId": "nep141:arb.omft.near",
+  "explorerUrl": "https://arbiscan.io",
+  "publicRpcUrl": "https://arbitrum.drpc.org",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

@@ -1,0 +1,17 @@
+{
+  "id": 100,
+  "key": "gnosis",
+  "name": "Gnosis",
+  "shortName": "Gnosis",
+  "nearBlockchain": "gnosis",
+  "symbol": "xDAI",
+  "decimals": 18,
+  "accent": "#04795b",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/xdai/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/xdai/info",
+  "trustWalletSlug": "xdai",
+  "intentsAssetId": "nep141:gnosis.omft.near",
+  "explorerUrl": "https://gnosisscan.io",
+  "publicRpcUrl": "https://rpc.gnosischain.com",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}

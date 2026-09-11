@@ -1,0 +1,17 @@
+{
+  "id": 9745,
+  "key": "plasma",
+  "name": "Plasma",
+  "shortName": "Plasma",
+  "nearBlockchain": "plasma",
+  "symbol": "XPL",
+  "decimals": 18,
+  "accent": "#111111",
+  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/plasma/info/logo.png",
+  "logoSourceUrl": "https://github.com/trustwallet/assets/tree/master/blockchains/plasma/info",
+  "trustWalletSlug": "plasma",
+  "intentsAssetId": "nep141:plasma.omft.near",
+  "explorerUrl": "https://plasmascan.to",
+  "publicRpcUrl": "https://rpc.plasma.to",
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+}
