@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+commitlint_bin="$repo_root/node_modules/.bin/commitlint"
+
+if [ ! -x "$commitlint_bin" ]; then
+  echo "commit-msg: Commitlint is unavailable; run pnpm install first" >&2
+  exit 1
+fi
+
+cd "$repo_root"
+exec "$commitlint_bin" --edit "$1"

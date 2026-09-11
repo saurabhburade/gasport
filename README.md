@@ -1,90 +1,117 @@
-# Gas
+# Gasport
 
-Turn ERC-20 tokens into native gas on another chain.
+Gasport swaps an ERC-20 token on one EVM chain for native gas on another. It compares routes from NEAR Intents 1Click and LI.FI, then prepares the selected route for the connected wallet.
 
-Gas is a focused gas-abstraction MVP: **TOKEN I HAVE → GAS I NEED → DESTINATION CHAIN**.
+The app can sponsor source-chain gas through Alchemy when the wallet does not have enough native gas. Demo mode keeps quotes and balances live but stops before transaction submission.
 
-## Development
+## Getting started
+
+You need Node.js 20.9 or newer and pnpm 10.
 
 ```bash
+git clone https://github.com/saurabhburade/gasport.git
+cd gasport
 pnpm install
 cp .env.example .env.local
 pnpm dev
 ```
 
-For local sponsored wallet calls, keep the development server running and
-start the configured HTTPS tunnel in a second terminal:
+Open [http://localhost:3000](http://localhost:3000).
+
+Demo mode is enabled in `.env.example`. Add a Reown project ID to test wallet connections. Set `NEXT_PUBLIC_ENABLE_DEMO_MODE=false` only when the server-side provider and sponsorship variables are ready.
+
+Local sponsored calls need HTTPS. Start the tunnel in another terminal and copy its URL into `NEXT_PUBLIC_PAYMASTER_PROXY_URL`:
 
 ```bash
 pnpm dev:tunnel
 ```
 
-The tunnel intentionally targets `127.0.0.1` because ngrok can resolve
-`localhost` to IPv6 while the Next.js development server is listening on IPv4.
-Set `NEXT_PUBLIC_PAYMASTER_PROXY_URL` to the HTTPS URL printed by ngrok.
+## Environment variables
 
-The app can keep transaction execution in demo mode with `NEXT_PUBLIC_ENABLE_DEMO_MODE=true`. Connected-wallet balances and NEAR Intents quotes are still fetched live; demo mode only prevents transaction submission and never invents transaction hashes.
+Copy `.env.example` to `.env.local`. Keep server variables out of client code and never add a `NEXT_PUBLIC_` prefix to API keys.
+
+### Browser
+
+| Variable | Use |
+| --- | --- |
+| `NEXT_PUBLIC_APP_URL` | Public app URL used in wallet metadata. |
+| `NEXT_PUBLIC_REOWN_PROJECT_ID` | Enables the Reown AppKit wallet modal. |
+| `NEXT_PUBLIC_ENABLE_DEMO_MODE` | Set to `false` to allow live submission. Defaults to demo mode. |
+| `NEXT_PUBLIC_PAYMASTER_PROXY_URL` | HTTPS proxy for sponsored calls during local development. |
+
+### Server
+
+| Variable | Use |
+| --- | --- |
+| `NEAR_INTENTS_API_KEY` | Authenticated 1Click quotes, deposits, and transaction history. |
+| `NEAR_INTENTS_API_URL` | Optional 1Click API override. |
+| `NEAR_INTENTS_EXPLORER_API_URL` | Optional explorer API override. |
+| `NEAR_INTENTS_MANAGER_PUBLIC_KEY` | Optional override for quote-signature verification. |
+| `NEAR_INTENTS_REFERRER_ID` | Optional 1Click referral ID. |
+| `NEAR_INTENTS_FEE_BPS` | App fee in basis points, from `0` to `500`. |
+| `NEAR_INTENTS_FEE_RECIPIENT` | Recipient required when the 1Click app fee is enabled. |
+| `LIFI_API_KEY` | Optional LI.FI API key. |
+| `PLATFORM_FEE_RECIPIENT` | Recipient for the LI.FI platform fee. |
+| `SPONSORED_GAS_FEE_RECIPIENT` | Recipient for recovered source-gas costs. |
+| `ALCHEMY_API_KEY` | Alchemy Gas Manager API key. |
+| `ALCHEMY_POLICY_ID` | Shared Alchemy policy fallback. |
+| `ALCHEMY_POLICY_ID_<CHAIN>` | Chain-specific policy. Supported suffixes are `ETHEREUM`, `BASE`, `ARBITRUM`, `OPTIMISM`, and `MONAD`. |
 
 ## Architecture
 
-- Next.js App Router + React Server Components by default.
-- Client-only wallet UX is isolated in `components/app-providers.tsx` and `components/wallet/`.
-- Reown AppKit provides EVM wallet connections, including Coinbase Wallet. There is no Coinbase CDP integration or Coinbase credential.
-- wagmi/viem provide live ERC-20/native balance reads, the typed EVM boundary, and bigint-safe token arithmetic.
-- `app/api/intents/*` validates NEAR Intents 1Click quote, deposit, and status data at the server boundary before it reaches the browser.
-- `lib/intents/` owns the NEAR 1Click request/response contracts, server-only authentication, quote-signature verification, and provider configuration.
-- `lib/routes/adapters/` normalizes NEAR 1Click and LI.FI quotes, fees, prepared calls, and settlement status behind one route interface.
+- `src/app/` contains the Next.js App Router pages and API routes.
+- `src/components/` contains the workspace, wallet controls, and UI primitives. Each component has its own implementation file.
+- `src/hooks/` owns browser-side quote and execution state.
+- `src/lib/routes/` defines the common route interface. The `near-oneclick` and `lifi` adapters normalize quotes, prepared calls, fees, and settlement status.
+- `src/lib/gas/` estimates source gas, chooses the execution strategy, and builds wallet calls.
+- `src/lib/intents/` handles 1Click requests, schemas, authentication, and quote-signature checks.
+- `src/config/` contains chain, token, wallet, and fee configuration.
+- `src/types/` contains shared application types.
 
-## Environment variables
+API routes validate external data with Zod before returning it to the browser. Token amounts stay as integers or decimal strings until display. Wallets sign and submit transactions; the app does not handle private keys.
 
-See `.env.example`. `NEXT_PUBLIC_REOWN_PROJECT_ID` is required for a live AppKit modal. Configure `NEAR_INTENTS_API_KEY` for authenticated 1Click requests and deposit submission. It is read only on the server and sent as a bearer token; never expose it with a `NEXT_PUBLIC_` prefix. The production 1Click and explorer URLs are the defaults.
+## Transfer flow
 
-Keep demo mode enabled for UI work. Live quotes use production market data even in demo mode, while deposits remain disabled.
+1. The user selects a source token and destination chain.
+2. The server checks the source balance and estimates gas.
+3. NEAR Intents and LI.FI return normalized quotes. The app selects the highest output, then the shorter route when outputs match.
+4. Confirmation requests a fresh executable quote.
+5. The wallet submits the prepared calls and the app polls settlement status.
 
-## Connected-wallet NEAR Intents flow
+Sponsorship and platform fees are deducted from the entered amount. They are not added on top. A failed atomic wallet batch does not leave a partial route execution.
 
-The live quote handler continuously requests one dry NEAR Intents 1Click `EXACT_INPUT` market quote for the selected ERC-20 and native destination gas token. The quote refreshes when its inputs change, retries after transient failures, and refreshes again when it expires. The app does not present multiple solver quotes because 1Click returns the selected quote.
+## Commands
 
-Before quoting, the server estimates source gas from live dRPC simulation and native balance, Pimlico UserOperation gas pricing, and NEAR Intents token prices. Inputs must be worth at least $5. If the account lacks native gas and the source chain has an Alchemy policy, the app sponsors the transaction and deducts a fixed $1-$5 tier from the input before requesting route quotes. An account with enough native gas pays normally and no sponsorship fee is deducted.
-
-After explicit confirmation, the app requests a fresh executable quote and validates it against the selected route. A sponsored execution uses a compatible EIP-5792 wallet to submit one atomic batch. The batch transfers the fixed sponsorship fee to `SPONSORED_GAS_FEE_RECIPIENT`, then executes the provider calls. LI.FI routes additionally transfer a 1% platform fee to `PLATFORM_FEE_RECIPIENT` (falling back to the sponsorship recipient) and quote LI.FI with the remaining amount. These deductions are included inside the user's entered total rather than added on top. If any call fails, the complete batch fails.
-
-The displayed source-gas charge is a buffered pre-execution estimate, not a post-settlement measurement. Final native gas can vary before inclusion. The app never receives private keys, signs on behalf of a user, or submits a deposit before explicit wallet confirmation.
-
-Execution progress stays in React state for the current page session. Once a transaction hash is known, retry only checks that transaction again or continues settlement polling; it never sends the deposit twice.
-
-Learn more in the [NEAR Intents 1Click documentation](https://docs.near-intents.org/integration/distribution-channels/1click-api/sdk) or inspect swaps in the [NEAR Intents Explorer](https://explorer.near-intents.org/).
-
-## Security
-
-- Never request or store private keys or seed phrases.
-- Token identity is contract address + chain ID, not symbol alone.
-- Token quantities use `bigint`/decimal-safe representations, never floating-point transfer values.
-- Never silently switch networks or execute before explicit confirmation.
-
-## Verification
-
-```bash
-pnpm biome check .
-pnpm build
-```
+| Command | Use |
+| --- | --- |
+| `pnpm dev` | Start the development server. |
+| `pnpm dev:tunnel` | Start the local ngrok tunnel. |
+| `pnpm test` | Run the Node test suite. |
+| `pnpm lint` | Run Biome checks. |
+| `pnpm format` | Format supported files with Biome. |
+| `pnpm build` | Create a production build. |
+| `pnpm scan:secrets` | Scan tracked files and Git history for high-signal credentials. |
 
 ## Git hooks
 
-Configure the repository's dependency-free Git hooks with:
+Husky installs the hooks when `pnpm install` runs. The pre-commit hook scans staged content for secrets and runs Biome. The commit message hook runs Commitlint with the Conventional Commits rules.
 
-```bash
-pnpm setup:hooks
+Examples:
+
+```text
+feat: add a destination chain
+fix(routes): reject an expired quote
+docs: update setup instructions
 ```
 
-The `commit-msg` hook validates Conventional Commit subjects, while allowing
-Git-generated merge, revert, `fixup!`, and `squash!` messages. The `pre-commit`
-hook runs the secret scanner and Biome in check-only mode against staged files.
-Run `pnpm setup:hooks` again after cloning or when the repository's Git
-configuration is recreated.
-
-Run a full tracked-file and history secret scan independently with:
+## Checks before a pull request
 
 ```bash
+pnpm test
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm build
 pnpm scan:secrets
 ```
+
+Provider references: [NEAR Intents 1Click](https://docs.near-intents.org/integration/distribution-channels/1click-api/sdk) and [LI.FI](https://docs.li.fi/).

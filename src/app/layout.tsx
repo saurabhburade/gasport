@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Gas — gas when you need gas",
+  title: "Gasport | Gas when you need it",
   description:
     "Turn the ERC-20 tokens you have into native gas on another chain.",
 };

@@ -1,5 +1,5 @@
 {
-  "name": "gas-app",
+  "name": "gasport",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,11 +8,11 @@
     "build": "next build",
     "test": "node --experimental-strip-types --test",
     "start": "next start",
+    "prepare": "husky",
     "biome": "biome",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "scan:secrets": "sh scripts/scan-secrets.sh",
-    "setup:hooks": "sh scripts/setup-git-hooks.sh"
+    "scan:secrets": "sh scripts/scan-secrets.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -36,11 +36,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.13",
+    "@commitlint/cli": "20.5.3",
+    "@commitlint/config-conventional": "20.5.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "husky": "9.1.7",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

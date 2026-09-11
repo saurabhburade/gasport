@@ -70,7 +70,7 @@ export const appKit =
         networks: appKitNetworks,
         defaultNetwork: mainnet,
         metadata: {
-          name: "Gas",
+          name: "Gasport",
           description: "Turn the tokens you have into the gas you need.",
           url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
           icons: ["https://avatars.githubusercontent.com/u/179229932"],
