@@ -6,15 +6,28 @@ import {
   useAppKitProvider,
 } from "@reown/appkit/react";
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { Address, Hex } from "viem";
+import type { Hex } from "viem";
 import { appKitNetworks } from "@/config/appkit";
+import {
+  isPreparedRoute,
+  nearInputToRoute,
+  routeStatusResult,
+  settlementParams,
+  sleep,
+} from "@/hooks/gas-execution/common";
+import {
+  CONFIRMATION_TIMEOUT_MS,
+  POLL_INTERVAL_MS,
+  SETTLEMENT_TIMEOUT_MS,
+} from "@/hooks/gas-execution/constants";
+import type {
+  ExecutionCheckpoint,
+  GasExecutionInput,
+  GasExecutionResult,
+} from "@/hooks/gas-execution/types";
 import { executionErrorMessage } from "@/lib/gas/execution-errors";
 import { resolveExecutionWallet } from "@/lib/gas/execution-wallet";
-import {
-  encodeNearDepositTransfer,
-  type NearExecutionInput,
-  validateNearExecutionInput,
-} from "@/lib/gas/near-execution";
+import { validateNearExecutionInput } from "@/lib/gas/near-execution";
 import {
   assertSponsorshipPreflight,
   createWalletSendCallsRequest,
@@ -24,150 +37,17 @@ import {
   getWalletCallId,
   getWalletTransactionHash,
   parseWalletCallsStatus,
-  type SourceGasFeeTransfer,
   WalletCallsTerminalError,
   type WalletRpcProvider,
 } from "@/lib/gas/wallet-calls";
-import type {
-  PreparedRoute,
-  RouteExecutionStatus,
-  RouteProviderId,
-} from "@/lib/routes/types";
 import type { GasFlowState } from "@/types/gas";
 
-const CONFIRMATION_TIMEOUT_MS = 120_000;
-const POLL_INTERVAL_MS = 2_000;
-const SETTLEMENT_TIMEOUT_MS = 5 * 60_000;
-const HASH_PATTERN = /^0x[\da-fA-F]{64}$/;
-
-/** Optional metadata carried alongside a prepared route at execution time. */
-export type RouteExecutionInput = PreparedRoute & {
-  sourceGasFee?: SourceGasFeeTransfer;
-  sponsorshipRequired?: boolean;
-};
-
-export type GasExecutionInput = RouteExecutionInput | NearExecutionInput;
-
-export type GasExecutionResult = {
-  chainId: number;
-  completion: "intent" | "route";
-  depositAddress?: Address;
-  destinationTxHash?: Hex;
-  explorerUrl?: string;
-  provider: RouteProviderId;
-  sourceCallId?: string;
-  sourceChainId: number;
-  sourceTxHash: Hex;
-  /** Compatibility alias for the original NEAR-only result shape. */
-  txHash: Hex;
-};
-
-type ExecutionStep = "send" | "confirm" | "monitor";
-
-type ExecutionCheckpoint = {
-  account?: Address;
-  input: GasExecutionInput;
-  route: RouteExecutionInput;
-  sourceTxHash?: Hex;
-  step: ExecutionStep;
-  updatedAt: number;
-  version: 1;
-  walletCallId?: string;
-};
-
-function sleep(milliseconds: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
-}
-
-export function isPreparedRoute(
-  input: GasExecutionInput,
-): input is RouteExecutionInput {
-  return (
-    typeof input === "object" &&
-    input !== null &&
-    "calls" in input &&
-    Array.isArray(input.calls) &&
-    "provider" in input &&
-    "settlement" in input
-  );
-}
-
-function nearInputToRoute(input: NearExecutionInput): RouteExecutionInput {
-  return {
-    calls: [
-      {
-        data: encodeNearDepositTransfer(input),
-        to: input.token,
-        value: "0x0" as Hex,
-      },
-    ],
-    provider: "near-1click",
-    quote: {
-      amountIn: input.amount.toString(),
-      amountInFormatted: input.amount.toString(),
-      amountOut: input.amount.toString(),
-      amountOutFormatted: input.amount.toString(),
-      expiresAt: new Date(Date.now() + SETTLEMENT_TIMEOUT_MS).toISOString(),
-      fees: [],
-      minAmountOut: input.amount.toString(),
-      provider: "near-1click",
-      providerQuoteId: "legacy-near-execution",
-    },
-    settlement: {
-      depositAddress: input.depositAddress,
-      ...(input.depositMemo ? { depositMemo: input.depositMemo } : {}),
-      kind: "near-1click",
-      quoteId: "legacy-near-execution",
-    },
-    sourceChainId: input.chainId,
-    ...(input.sourceGasFeeAmount !== undefined &&
-    input.sourceGasFeeRecipient !== undefined
-      ? {
-          sourceGasFee: {
-            amount: input.sourceGasFeeAmount,
-            recipient: input.sourceGasFeeRecipient,
-            token: input.token,
-          },
-          sponsorshipRequired: true,
-        }
-      : {}),
-  };
-}
-
-function settlementParams(
-  params: URLSearchParams,
-  settlement: PreparedRoute["settlement"],
-) {
-  params.set("settlement", JSON.stringify(settlement));
-}
-
-function asHash(value: unknown): Hex | undefined {
-  return typeof value === "string" && HASH_PATTERN.test(value)
-    ? (value as Hex)
-    : undefined;
-}
-
-function routeStatusResult(value: unknown): RouteExecutionStatus {
-  if (!value || typeof value !== "object") {
-    throw new Error("The route status response is invalid.");
-  }
-  const status = value as Partial<RouteExecutionStatus>;
-  if (status.kind === "pending") return { kind: "pending" };
-  if (status.kind === "failed") {
-    throw new Error(status.message || "The route execution failed.");
-  }
-  if (status.kind === "success") {
-    const destinationTxHash = asHash(status.destinationTxHash);
-    return {
-      kind: "success",
-      ...(destinationTxHash ? { destinationTxHash } : {}),
-      ...(typeof status.explorerUrl === "string"
-        ? { explorerUrl: status.explorerUrl }
-        : {}),
-    };
-  }
-  throw new Error("The route status response is invalid.");
-}
+export { isPreparedRoute } from "@/hooks/gas-execution/common";
+export type {
+  GasExecutionInput,
+  GasExecutionResult,
+  RouteExecutionInput,
+} from "@/hooks/gas-execution/types";
 
 export function useGasExecution() {
   const appKitAccount = useAppKitAccount({ namespace: "eip155" });
