@@ -1,0 +1,70 @@
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+
+export function DestinationAddressDialog({
+  draft,
+  error,
+  onDraftChange,
+  onOpenChange,
+  onSave,
+  open,
+}: {
+  draft: string;
+  error: string | null;
+  onDraftChange: (value: string) => void;
+  onOpenChange: (open: boolean) => void;
+  onSave: () => void;
+  open: boolean;
+}) {
+  return (
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent
+        className="gap-4 p-5 sm:max-w-[480px]"
+        initialFocus={false}
+      >
+        <DialogHeader className="pr-8">
+          <DialogTitle className="text-xl tracking-[-0.04em]">
+            Destination address
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Input
+            autoComplete="off"
+            id="destination-address"
+            aria-invalid={Boolean(error)}
+            className="h-11 text-sm"
+            onChange={(event) => onDraftChange(event.target.value)}
+            placeholder="0xA1b63a6Ca51b8CA5Bdb10866ac7C0C621D881800"
+            spellCheck={false}
+            value={draft}
+          />
+          {error && <p className="text-xs text-destructive">{error}</p>}
+        </div>
+        <DialogFooter className="flex-col-reverse sm:flex-row">
+          <Button
+            className="h-10 w-full rounded-full px-4 text-sm sm:w-auto"
+            onClick={() => onOpenChange(false)}
+            type="button"
+            variant="outline"
+          >
+            Cancel
+          </Button>
+          <Button
+            className="h-10 w-full rounded-full px-4 text-sm sm:w-auto"
+            onClick={onSave}
+            type="button"
+          >
+            Save address
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
