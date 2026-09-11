@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+sh scripts/scan-secrets.sh --staged
+
+biome_bin="$repo_root/node_modules/.bin/biome"
+if [ -x "$biome_bin" ]; then
+  exec "$biome_bin" check --staged --no-errors-on-unmatched
+fi
+
+if command -v pnpm >/dev/null 2>&1; then
+  exec pnpm exec biome check --staged --no-errors-on-unmatched
+fi
+
+echo "pre-commit: Biome is unavailable; run pnpm install first" >&2
+exit 1

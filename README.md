@@ -68,3 +68,23 @@ Learn more in the [NEAR Intents 1Click documentation](https://docs.near-intents.
 pnpm biome check .
 pnpm build
 ```
+
+## Git hooks
+
+Configure the repository's dependency-free Git hooks with:
+
+```bash
+pnpm setup:hooks
+```
+
+The `commit-msg` hook validates Conventional Commit subjects, while allowing
+Git-generated merge, revert, `fixup!`, and `squash!` messages. The `pre-commit`
+hook runs the secret scanner and Biome in check-only mode against staged files.
+Run `pnpm setup:hooks` again after cloning or when the repository's Git
+configuration is recreated.
+
+Run a full tracked-file and history secret scan independently with:
+
+```bash
+pnpm scan:secrets
+```
