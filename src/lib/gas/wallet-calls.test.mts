@@ -263,7 +263,7 @@ test("uses the hosted app's HTTPS paymaster route without a tunnel", () => {
   );
 });
 
-test("uses the configured HTTPS tunnel only for local HTTP development", () => {
+test("uses the configured HTTPS tunnel for local HTTP and HTTPS development", () => {
   assert.equal(
     getPaymasterProxyUrl({
       origin: "http://localhost:3000",
@@ -271,12 +271,48 @@ test("uses the configured HTTPS tunnel only for local HTTP development", () => {
     }),
     "https://tunnel.example.com/api/gas/sponsored",
   );
+  assert.equal(
+    getPaymasterProxyUrl({
+      origin: "https://localhost:3000",
+      configuredUrl: "https://tunnel.example.com/api/gas/sponsored",
+    }),
+    "https://tunnel.example.com/api/gas/sponsored",
+  );
+});
+
+test("rejects local HTTPS as a wallet paymaster URL", () => {
+  assert.throws(
+    () =>
+      getPaymasterProxyUrl({
+        origin: "https://localhost:3000",
+      }),
+    /publicly reachable HTTPS paymaster URL/i,
+  );
+  assert.throws(
+    () =>
+      createSponsoredTransferRequest({
+        account,
+        token,
+        recipient,
+        amount: 1n,
+        chainId: 1,
+        paymasterUrl: "https://localhost:3000/api/gas/sponsored",
+      }),
+    /publicly reachable HTTPS paymaster URL/i,
+  );
 });
 
 test("bypasses the ngrok browser warning for a local sponsorship preflight", () => {
   assert.deepEqual(
     getSponsorshipPreflightHeaders({
       origin: "http://localhost:3000",
+      paymasterUrl: "https://temporary-tunnel.ngrok-free.dev/api/gas/sponsored",
+    }),
+    { "ngrok-skip-browser-warning": "1" },
+  );
+  assert.deepEqual(
+    getSponsorshipPreflightHeaders({
+      origin: "https://localhost:3000",
       paymasterUrl: "https://temporary-tunnel.ngrok-free.dev/api/gas/sponsored",
     }),
     { "ngrok-skip-browser-warning": "1" },

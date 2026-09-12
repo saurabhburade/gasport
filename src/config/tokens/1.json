@@ -1,0 +1,101 @@
+[
+  {
+    "assetId": "nep141:eth-0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9",
+    "decimals": 18,
+    "symbol": "AAVE",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9/logo.png",
+    "coingeckoId": "aave"
+  },
+  {
+    "assetId": "nep141:eth-0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+    "decimals": 8,
+    "symbol": "cbBTC",
+    "logoURI": "https://coin-images.coingecko.com/coins/images/40143/large/cbbtc.webp?1726136727",
+    "coingeckoId": "coinbase-wrapped-btc"
+  },
+  {
+    "assetId": "nep141:eth-0x6b175474e89094c44da98b954eedeac495271d0f.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0x6b175474e89094c44da98b954eedeac495271d0f",
+    "decimals": 18,
+    "symbol": "DAI",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png",
+    "coingeckoId": "dai"
+  },
+  {
+    "assetId": "nep141:eth-0x514910771af9ca656af840dff83e8264ecf986ca.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0x514910771af9ca656af840dff83e8264ecf986ca",
+    "decimals": 18,
+    "symbol": "LINK",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x514910771AF9Ca656af840dff83E8264EcF986CA/logo.png",
+    "coingeckoId": "chainlink"
+  },
+  {
+    "assetId": "nep141:eth-0x1f9840a85d5af5bf1d1762f925bdaddc4201f984.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+    "decimals": 18,
+    "symbol": "UNI",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984/logo.png",
+    "coingeckoId": "uniswap"
+  },
+  {
+    "assetId": "nep141:eth-0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+    "decimals": 18,
+    "symbol": "USD1",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d/logo.png",
+    "coingeckoId": "usd1-wlfi"
+  },
+  {
+    "assetId": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "decimals": 6,
+    "symbol": "USDC",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
+    "coingeckoId": "usd-coin"
+  },
+  {
+    "assetId": "nep141:eth-0xfa2b947eec368f42195f24f36d2af29f7c24cec2.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0xfa2b947eec368f42195f24f36d2af29f7c24cec2",
+    "decimals": 18,
+    "symbol": "USDf",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xFa2B947eEc368f42195f24F36d2aF29f7c24CeC2/logo.png",
+    "coingeckoId": "falcon-finance"
+  },
+  {
+    "assetId": "nep141:eth-0xdac17f958d2ee523a2206206994597c13d831ec7.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    "decimals": 6,
+    "symbol": "USDT",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+    "coingeckoId": "tether"
+  },
+  {
+    "assetId": "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "decimals": 8,
+    "symbol": "WBTC",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599/logo.png",
+    "coingeckoId": "wrapped-bitcoin"
+  },
+  {
+    "assetId": "nep141:eth-0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.omft.near",
+    "blockchain": "eth",
+    "contractAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "decimals": 18,
+    "symbol": "WETH",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+    "coingeckoId": "ethereum"
+  }
+]

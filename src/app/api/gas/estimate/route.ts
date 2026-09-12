@@ -12,6 +12,7 @@ import {
   calculateSourceGasCharge,
   resolveSourceGasFunding,
   sourceGasEstimateRequestSchema,
+  sponsorshipSourceTokenUsd,
 } from "@/lib/gas/source-gas";
 import { encodeErc20Transfer } from "@/lib/gas/wallet-calls";
 import {
@@ -37,7 +38,6 @@ const bundlerGasPriceResponseSchema = z
 
 const MIN_ERC20_TRANSFER_GAS = 65_000n;
 const ACCOUNT_ABSTRACTION_OVERHEAD_GAS = 150_000n;
-const USD_STABLE_SYMBOLS = new Set(["USDC", "USDT", "DAI"]);
 
 async function rpcRequest(url: string, method: string, params: unknown[]) {
   const response = await fetch(url, {
@@ -151,9 +151,10 @@ export async function POST(request: Request) {
     fixedSponsorshipCharge = calculateFixedSourceGasCharge({
       amount: BigInt(amount),
       sourceTokenDecimals: sourceToken.decimals,
-      sourceTokenUsd: USD_STABLE_SYMBOLS.has(sourceToken.symbol)
-        ? 1
-        : sourcePrice,
+      sourceTokenUsd: sponsorshipSourceTokenUsd(
+        sourceToken.symbol,
+        sourcePrice,
+      ),
     });
   } catch (error) {
     return NextResponse.json(

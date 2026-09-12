@@ -1,0 +1,29 @@
+[
+  {
+    "assetId": "nep141:base-0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf.omft.near",
+    "blockchain": "base",
+    "contractAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+    "decimals": 8,
+    "symbol": "cbBTC",
+    "logoURI": "https://coin-images.coingecko.com/coins/images/40143/large/cbbtc.webp?1726136727",
+    "coingeckoId": "coinbase-wrapped-btc"
+  },
+  {
+    "assetId": "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+    "blockchain": "base",
+    "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+    "decimals": 6,
+    "symbol": "USDC",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/logo.png",
+    "coingeckoId": "usd-coin"
+  },
+  {
+    "assetId": "nep141:base-0x4200000000000000000000000000000000000006.omft.near",
+    "blockchain": "base",
+    "contractAddress": "0x4200000000000000000000000000000000000006",
+    "decimals": 18,
+    "symbol": "WETH",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x4200000000000000000000000000000000000006/logo.png",
+    "coingeckoId": "ethereum"
+  }
+]

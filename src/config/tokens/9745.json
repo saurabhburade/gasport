@@ -1,0 +1,11 @@
+[
+  {
+    "assetId": "nep141:plasma-0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb.omft.near",
+    "blockchain": "plasma",
+    "contractAddress": "0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb",
+    "decimals": 6,
+    "symbol": "USDT0",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/plasma/assets/0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb/logo.png",
+    "coingeckoId": "usdt0"
+  }
+]

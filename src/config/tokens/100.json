@@ -1,0 +1,47 @@
+[
+  {
+    "assetId": "nep141:gnosis-0x420ca0f9b9b604ce0fd9c18ef134c705e5fa3430.omft.near",
+    "blockchain": "gnosis",
+    "contractAddress": "0x420ca0f9b9b604ce0fd9c18ef134c705e5fa3430",
+    "decimals": 18,
+    "symbol": "EURe",
+    "logoURI": "https://coin-images.coingecko.com/coins/images/54303/large/eure.jpg?1739167959",
+    "coingeckoId": "monerium-eur-money-2"
+  },
+  {
+    "assetId": "nep141:gnosis-0x5cb9073902f2035222b9749f8fb0c9bfe5527108.omft.near",
+    "blockchain": "gnosis",
+    "contractAddress": "0x5cb9073902f2035222b9749f8fb0c9bfe5527108",
+    "decimals": 18,
+    "symbol": "GBPe",
+    "logoURI": "https://coin-images.coingecko.com/coins/images/39004/large/gbp.png?1719840784",
+    "coingeckoId": "monerium-gbp-emoney"
+  },
+  {
+    "assetId": "nep141:gnosis-0x2a22f9c3b484c3629090feed35f17ff8f88f76f0.omft.near",
+    "blockchain": "gnosis",
+    "contractAddress": "0x2a22f9c3b484c3629090feed35f17ff8f88f76f0",
+    "decimals": 6,
+    "symbol": "USDC",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
+    "coingeckoId": "usd-coin"
+  },
+  {
+    "assetId": "nep141:gnosis-0x4ecaba5870353805a9f068101a40e0f32ed605c6.omft.near",
+    "blockchain": "gnosis",
+    "contractAddress": "0x4ecaba5870353805a9f068101a40e0f32ed605c6",
+    "decimals": 6,
+    "symbol": "USDT",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+    "coingeckoId": "tether"
+  },
+  {
+    "assetId": "nep141:gnosis-0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1.omft.near",
+    "blockchain": "gnosis",
+    "contractAddress": "0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1",
+    "decimals": 18,
+    "symbol": "WETH",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+    "coingeckoId": "ethereum"
+  }
+]

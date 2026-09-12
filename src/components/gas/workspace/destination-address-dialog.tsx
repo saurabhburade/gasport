@@ -49,16 +49,18 @@ export function DestinationAddressDialog({
         </div>
         <DialogFooter className="flex-col-reverse sm:flex-row">
           <Button
-            className="h-10 w-full rounded-full px-4 text-sm sm:w-auto"
+            className="w-full rounded-full sm:w-auto"
             onClick={() => onOpenChange(false)}
+            size="sm"
             type="button"
             variant="outline"
           >
             Cancel
           </Button>
           <Button
-            className="h-10 w-full rounded-full px-4 text-sm sm:w-auto"
+            className="w-full rounded-full sm:w-auto"
             onClick={onSave}
+            size="sm"
             type="button"
           >
             Save address

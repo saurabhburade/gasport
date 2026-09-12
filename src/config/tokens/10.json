@@ -1,0 +1,29 @@
+[
+  {
+    "assetId": "nep245:v2_1.omni.hot.tg:10_A2ewyUyDp6qsue1jqZsGypkCxRJ",
+    "blockchain": "op",
+    "contractAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+    "decimals": 6,
+    "symbol": "USDC",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/optimism/assets/0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85/logo.png",
+    "coingeckoId": "usd-coin"
+  },
+  {
+    "assetId": "nep245:v2_1.omni.hot.tg:10_359RPSJVdTxwTJT9TyGssr2rFoWo",
+    "blockchain": "op",
+    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+    "decimals": 6,
+    "symbol": "USDT",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/optimism/assets/0x94b008aA00579c1307B0EF2c499aD98a8ce58e58/logo.png",
+    "coingeckoId": "tether"
+  },
+  {
+    "assetId": "nep245:v2_1.omni.hot.tg:10_vLAiSt9KfUGKpw5cD3vsSyNYBn5",
+    "blockchain": "op",
+    "contractAddress": "0x4200000000000000000000000000000000000006",
+    "decimals": 18,
+    "symbol": "WETH",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/optimism/assets/0x4200000000000000000000000000000000000006/logo.png",
+    "coingeckoId": "ethereum"
+  }
+]

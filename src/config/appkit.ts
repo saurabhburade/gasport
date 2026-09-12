@@ -78,6 +78,20 @@ export const appKit =
         enableCoinbase: true,
         enableBaseAccount: true,
         coinbasePreference: "smartWalletOnly",
-        features: { analytics: false },
+        features: { analytics: false, swaps: false },
+        themeVariables: {
+          "--apkt-accent": "var(--primary)",
+          "--apkt-border-radius-master": "2px",
+          "--apkt-font-family":
+            "var(--font-inter), Arial, Helvetica, sans-serif",
+        },
       })
     : undefined;
+
+// Reown project settings can override local feature flags during initialization.
+// Keep Swap hidden in the account menu even when the remote project enables it.
+if (appKit) {
+  void appKit.ready().then(() => {
+    appKit.updateRemoteFeatures({ swaps: false });
+  });
+}

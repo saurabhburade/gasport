@@ -6,6 +6,7 @@ type DashboardShellProps = {
   children: ReactNode;
   navigation: {
     active: boolean;
+    icon?: ReactNode;
     label: string;
     onClick: () => void;
   }[];
@@ -19,7 +20,7 @@ export function DashboardShell({
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/92 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 w-full max-w-[1540px] items-center gap-2 px-4 sm:gap-5 sm:px-8 lg:px-12">
+        <div className="mx-auto flex w-full max-w-[1540px] items-center gap-2 px-4 py-3 sm:gap-5 sm:px-8 lg:px-12">
           <nav
             aria-label="Primary navigation"
             className="flex items-center gap-1 text-xs"
@@ -27,11 +28,12 @@ export function DashboardShell({
             {navigation.map((item) => (
               <button
                 aria-current={item.active ? "page" : undefined}
-                className={`h-8 rounded-full px-3.5 font-semibold transition-colors ${item.active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                className={`inline-flex h-8 items-center gap-2 rounded-full px-3.5 font-semibold transition-colors ${item.active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
                 key={item.label}
                 onClick={item.onClick}
                 type="button"
               >
+                {item.icon}
                 {item.label}
               </button>
             ))}

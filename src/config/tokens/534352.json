@@ -1,0 +1,11 @@
+[
+  {
+    "assetId": "nep245:v2_1.omni.hot.tg:534352_4RG3Q2wFsMQmd45m5m89RjsLfupA",
+    "blockchain": "scroll",
+    "contractAddress": "0xf55bec9cafdbe8730f096aa55dad6d22d44099df",
+    "decimals": 6,
+    "symbol": "USDT",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/scroll/assets/0xf55BEC9cafDbE8730f096Aa55dad6D22d44099Df/logo.png",
+    "coingeckoId": "tether"
+  }
+]

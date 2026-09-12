@@ -1,14 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { type Address, zeroAddress } from "viem";
 import { useReadContracts } from "wagmi";
 import { supportedTokens } from "@/config/tokens";
-import {
-  type IntentsTokenCatalogItem,
-  sourceTokensFromCatalog,
-  tokenKey,
-} from "@/lib/tokens/source-catalog";
+import { tokenKey } from "@/lib/tokens/source-catalog";
 
 const erc20BalanceAbi = [
   {
@@ -28,50 +24,21 @@ const preferredSymbolRank: Readonly<Record<string, number>> = {
   WETH: 4,
 };
 
-/** Live NEAR Intents EVM assets, with a small verified offline fallback. */
+/** Locally saved, per-chain NEAR Intents ERC-20 catalog. */
 export function useSourceTokens(address?: Address) {
-  const [tokens, setTokens] = useState(supportedTokens);
-  const [catalogError, setCatalogError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void fetch("/api/intents/tokens", {
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("The token catalog is unavailable.");
-        const body: unknown = await response.json();
-        if (!Array.isArray(body)) {
-          throw new Error("The token catalog response is invalid.");
-        }
-        const catalogTokens = sourceTokensFromCatalog(
-          body as IntentsTokenCatalogItem[],
-        ).sort((first, second) => {
-          const firstRank =
-            preferredSymbolRank[first.symbol.toUpperCase()] ?? 100;
-          const secondRank =
-            preferredSymbolRank[second.symbol.toUpperCase()] ?? 100;
-          return (
-            firstRank - secondRank || first.symbol.localeCompare(second.symbol)
-          );
-        });
-        if (catalogTokens.length === 0) {
-          throw new Error("The token catalog has no supported EVM assets.");
-        }
-        setTokens(catalogTokens);
-        setCatalogError(null);
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        setCatalogError(
-          error instanceof Error
-            ? error.message
-            : "The token catalog is unavailable.",
+  const tokens = useMemo(
+    () =>
+      [...supportedTokens].sort((first, second) => {
+        const firstRank =
+          preferredSymbolRank[first.symbol.toUpperCase()] ?? 100;
+        const secondRank =
+          preferredSymbolRank[second.symbol.toUpperCase()] ?? 100;
+        return (
+          firstRank - secondRank || first.symbol.localeCompare(second.symbol)
         );
-      });
-    return () => controller.abort();
-  }, []);
+      }),
+    [],
+  );
 
   const contracts = useMemo(
     () =>
@@ -108,7 +75,7 @@ export function useSourceTokens(address?: Address) {
   return {
     balanceByTokenKey,
     balancesPending: Boolean(address) && balances.isPending,
-    catalogError,
+    catalogError: null,
     tokens,
   };
 }

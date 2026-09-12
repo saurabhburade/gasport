@@ -1,8 +1,9 @@
 "use client";
 
 import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { Fuel } from "lucide-react";
 import { useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type Address, formatUnits, isAddress, parseUnits } from "viem";
 import { useBalance } from "wagmi";
 import { DashboardShell } from "@/components/dashboard-shell";
@@ -37,6 +38,7 @@ import { normalizeAmountInput } from "@/lib/amount-input";
 import {
   getExecutionRetryAction,
   isConfirmationDialogOpen,
+  resolveConfirmationFlowState,
   shouldFetchQuotes,
   shouldResetExecutionOnDialogClose,
   shouldResetExecutionOnDraftChange,
@@ -56,7 +58,7 @@ export function GasWorkspace() {
   const [token, setToken] = useState<Token>(defaultToken);
   const [destination, setDestination] =
     useState<DestinationChain>(defaultDestination);
-  const [amount, setAmount] = useState("5");
+  const [amount, setAmount] = useState("");
   const [state, setState] = useState<GasFlowState>("wallet_required");
   const [error, setError] = useState<string | null>(null);
   const { isDark, toggleTheme } = useGasTheme();
@@ -72,6 +74,7 @@ export function GasWorkspace() {
     string | null
   >(null);
   const [isPreparingDeposit, setIsPreparingDeposit] = useState(false);
+  const preparingDepositRef = useRef(false);
   const [activeView, setActiveView] = useState<
     "get-gas" | "transactions" | "tx-status"
   >("get-gas");
@@ -86,7 +89,12 @@ export function GasWorkspace() {
     setIsExecutionDialogDismissed,
     setResumeExecutionAfterConnect,
   } = execution;
-  const quoteUpdatesEnabled = shouldFetchQuotes(state);
+  const confirmationFlowState = resolveConfirmationFlowState({
+    flowState: state,
+    executionFlowState: execution.flowState,
+    isExecuting: execution.isExecuting,
+  });
+  const quoteUpdatesEnabled = shouldFetchQuotes(confirmationFlowState);
   const sourceTokens = useSourceTokens(walletAddress);
   const sourceChain =
     CHAIN_LIST.find((chain) => chain.id === token.chainId) ?? CHAIN_LIST[0];
@@ -140,10 +148,18 @@ export function GasWorkspace() {
   });
 
   useEffect(() => {
+    if (!connected) {
+      setDestinationAddress("");
+      setDestinationAddressDraft("");
+      setDestinationAddressEdited(false);
+      setDestinationAddressError(null);
+      return;
+    }
+
     if (connectedWalletAddress && !destinationAddressEdited) {
       setDestinationAddress(connectedWalletAddress);
     }
-  }, [connectedWalletAddress, destinationAddressEdited]);
+  }, [connected, connectedWalletAddress, destinationAddressEdited]);
 
   const connect = () => {
     setDemoConnected(true);
@@ -207,6 +223,7 @@ export function GasWorkspace() {
     setState("confirming");
   };
   const reset = () => {
+    preparingDepositRef.current = false;
     execution.reset();
     setResumeExecutionAfterConnect(false);
     setState(connected ? "quoted" : "wallet_required");
@@ -220,8 +237,15 @@ export function GasWorkspace() {
     }
   };
   const confirmDeposit = async () => {
+    if (
+      preparingDepositRef.current ||
+      execution.isExecuting ||
+      execution.isResumable
+    )
+      return;
     if (!quote || !walletAddress || !recipientAddress || !sourceGasEstimate)
       return;
+    preparingDepositRef.current = true;
     setError(null);
     setIsPreparingDeposit(true);
     try {
@@ -280,6 +304,7 @@ export function GasWorkspace() {
       };
       execution.start(executionInput);
     } catch (requestError) {
+      preparingDepositRef.current = false;
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -336,6 +361,7 @@ export function GasWorkspace() {
       navigation={[
         {
           active: activeView === "get-gas",
+          icon: <Fuel aria-hidden="true" className="size-4" />,
           label: "Gasport",
           onClick: () => setActiveView("get-gas"),
         },
@@ -385,7 +411,7 @@ export function GasWorkspace() {
         amount={amount}
         completion={execution.result}
         destination={destination}
-        flowState={state}
+        flowState={confirmationFlowState}
         recipient={destinationAddress}
         receiveAmount={marketQuote?.output}
         route={marketQuote}
@@ -396,13 +422,16 @@ export function GasWorkspace() {
             setIsExecutionDialogDismissed(false);
             return;
           }
-          if (shouldResetExecutionOnDialogClose(state)) {
+          if (shouldResetExecutionOnDialogClose(confirmationFlowState)) {
             reset();
             return;
           }
           setIsExecutionDialogDismissed(true);
         }}
-        open={isConfirmationDialogOpen(state, isExecutionDialogDismissed)}
+        open={isConfirmationDialogOpen(
+          confirmationFlowState,
+          isExecutionDialogDismissed,
+        )}
         quote={quote}
         sourceChain={sourceChain}
         error={visibleError}

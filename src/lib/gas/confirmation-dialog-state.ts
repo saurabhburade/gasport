@@ -10,6 +10,19 @@ export function getExecutionRetryAction(
     : ("refresh-quote" as const);
 }
 
+export function resolveConfirmationFlowState({
+  flowState,
+  executionFlowState,
+  isExecuting,
+}: {
+  flowState: GasFlowState;
+  executionFlowState: GasFlowState;
+  isExecuting: boolean;
+}): GasFlowState {
+  if (executionFlowState !== "idle") return executionFlowState;
+  return isExecuting ? "submitting" : flowState;
+}
+
 export function isConfirmationDialogOpen(
   flowState: GasFlowState,
   isDismissed: boolean,

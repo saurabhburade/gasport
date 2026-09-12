@@ -72,6 +72,7 @@ export function GasRequestCard({
                 inputMode="decimal"
                 max={formatUnits(inputLimit, token.decimals)}
                 pattern="[0-9]*[.]?[0-9]*"
+                placeholder="0.00"
                 aria-invalid={quoteStatus === "invalid"}
                 value={amount}
                 onChange={(event) => onAmountChange(event.target.value)}
@@ -105,7 +106,7 @@ export function GasRequestCard({
               </span>
             )}
             <span className="ml-auto tabular-nums">
-              Bal: {connected ? formatBalance(sourceBalanceFormatted) : "—"}
+              Bal: {connected ? formatBalance(sourceBalanceFormatted) : "0.00"}
             </span>
           </div>
         </div>
@@ -148,7 +149,7 @@ export function GasRequestCard({
             )}
             <span className="tabular-nums">
               Bal:{" "}
-              {connected ? formatBalance(destinationBalanceFormatted) : "—"}
+              {connected ? formatBalance(destinationBalanceFormatted) : "0.00"}
             </span>
           </div>
         </div>

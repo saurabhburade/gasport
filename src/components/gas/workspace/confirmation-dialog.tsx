@@ -2,7 +2,7 @@ import {
   CircleAlert,
   Copy,
   ExternalLink,
-  LoaderCircle,
+  Loader,
   RotateCcw,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -158,13 +158,32 @@ export function ConfirmationDialog({
             </Alert>
           ) : null}
         </div>
-        {flowState === "confirming" && error && (
-          <Alert variant="destructive" className="py-3">
-            <CircleAlert className="size-4" />
-            <AlertTitle>Couldn&apos;t prepare deposit</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        <AnimatePresence initial={false}>
+          {flowState === "confirming" && error && (
+            <motion.div
+              animate={{
+                filter: "blur(0px)",
+                height: "auto",
+                opacity: 1,
+                y: 0,
+              }}
+              className="overflow-hidden"
+              exit={{ filter: "blur(4px)", height: 0, opacity: 0, y: -6 }}
+              initial={{ filter: "blur(4px)", height: 0, opacity: 0, y: 6 }}
+              key="deposit-preparation-error"
+              transition={alertTransition}
+            >
+              <Alert
+                variant="destructive"
+                className="border-0 bg-destructive/10 py-3"
+              >
+                <CircleAlert className="size-4" />
+                <AlertTitle>Couldn&apos;t prepare deposit</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <AnimatePresence initial={false} mode="popLayout">
           {flowState === "failed" && (
             <motion.div
@@ -247,10 +266,7 @@ export function ConfirmationDialog({
           >
             {isRetrying ? (
               <>
-                <LoaderCircle
-                  className="animate-spin"
-                  data-icon="inline-start"
-                />
+                <Loader className="animate-spin" data-icon="inline-start" />
                 Retrying
               </>
             ) : retryRequiresWallet ? (
@@ -263,7 +279,7 @@ export function ConfirmationDialog({
           </Button>
         ) : isProcessing ? (
           <div className="flex h-11 items-center justify-center gap-2 rounded-full bg-muted/40 px-4 text-sm font-medium">
-            <LoaderCircle className="size-4 animate-spin" />
+            <Loader className="size-4 animate-spin" />
             {processingLabel[flowState] ?? "Processing transaction"}
           </div>
         ) : (
@@ -275,10 +291,7 @@ export function ConfirmationDialog({
             >
               {isPreparingDeposit ? (
                 <>
-                  <LoaderCircle
-                    className="animate-spin"
-                    data-icon="inline-start"
-                  />
+                  <Loader className="animate-spin" data-icon="inline-start" />
                   Preparing deposit
                 </>
               ) : (

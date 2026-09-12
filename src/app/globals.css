@@ -109,8 +109,13 @@
   }
 }
 ::selection {
-  background: color-mix(in oklab, var(--foreground) 15%, transparent);
-  color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+[data-slot="tooltip-content"]::selection,
+[data-slot="tooltip-content"] *::selection {
+  background: color-mix(in oklab, var(--background) 25%, transparent);
+  color: var(--background);
 }
 .tabular-nums {
   font-variant-numeric: tabular-nums;

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   getExecutionRetryAction,
   isConfirmationDialogOpen,
+  resolveConfirmationFlowState,
   shouldFetchQuotes,
   shouldResetExecutionOnDialogClose,
   shouldResetExecutionOnDraftChange,
@@ -18,6 +19,41 @@ test("an unfinished transaction is visible until the user dismisses it", () => {
 
 test("an authorization prompt remains visible while it is active", () => {
   assert.equal(isConfirmationDialogOpen("wallet_signature", false), true);
+});
+
+test("a pending wallet authorization cannot show the confirm action again", () => {
+  const activeState = resolveConfirmationFlowState({
+    flowState: "confirming",
+    executionFlowState: "wallet_signature",
+    isExecuting: true,
+  });
+  assert.equal(activeState, "wallet_signature");
+  assert.equal(shouldResetExecutionOnDialogClose(activeState), false);
+  assert.equal(shouldFetchQuotes(activeState), false);
+  assert.equal(
+    resolveConfirmationFlowState({
+      flowState: "confirming",
+      executionFlowState: "idle",
+      isExecuting: true,
+    }),
+    "submitting",
+  );
+  assert.equal(
+    resolveConfirmationFlowState({
+      flowState: "confirming",
+      executionFlowState: "wallet_signature",
+      isExecuting: false,
+    }),
+    "wallet_signature",
+  );
+  assert.equal(
+    resolveConfirmationFlowState({
+      flowState: "confirming",
+      executionFlowState: "idle",
+      isExecuting: false,
+    }),
+    "confirming",
+  );
 });
 
 test("a completed transaction remains visible in the execution dialog", () => {

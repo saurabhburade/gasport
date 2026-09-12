@@ -26,6 +26,8 @@ Local sponsored calls need HTTPS. Start the tunnel in another terminal and copy 
 pnpm dev:tunnel
 ```
 
+If Next.js is running with `next dev --experimental-https`, use `pnpm dev:tunnel:https` instead. Set `NEXT_PUBLIC_PAYMASTER_PROXY_URL` to the tunnel's public HTTPS URL plus `/api/gas/sponsored`, then restart Next.js. `https://localhost:3000` alone is not a valid wallet paymaster URL because the wallet service cannot reach your machine's localhost.
+
 ## Environment variables
 
 Copy `.env.example` to `.env.local`. Keep server variables out of client code and never add a `NEXT_PUBLIC_` prefix to API keys.
@@ -80,6 +82,7 @@ Sponsorship and platform fees are deducted from the entered amount. They are not
 | --- | --- |
 | `pnpm dev` | Start the development server. |
 | `pnpm dev:tunnel` | Start the local ngrok tunnel. |
+| `pnpm dev:tunnel:https` | Tunnel to a local HTTPS development server. |
 | `pnpm test` | Run the Node test suite. |
 | `pnpm lint` | Run Biome checks. |
 | `pnpm format` | Format supported files with Biome. |

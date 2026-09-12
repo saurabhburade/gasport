@@ -1,0 +1,29 @@
+[
+  {
+    "assetId": "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+    "blockchain": "arb",
+    "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+    "decimals": 6,
+    "symbol": "USDC",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/assets/0xaf88d065e77c8cC2239327C5EDb3A432268e5831/logo.png",
+    "coingeckoId": "usd-coin"
+  },
+  {
+    "assetId": "nep141:arb-0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9.omft.near",
+    "blockchain": "arb",
+    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+    "decimals": 6,
+    "symbol": "USDT0",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/assets/0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9/logo.png",
+    "coingeckoId": "usdt0"
+  },
+  {
+    "assetId": "nep141:arb-0x82af49447d8a07e3bd95bd0d56f35241523fbab1.omft.near",
+    "blockchain": "arb",
+    "contractAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+    "decimals": 18,
+    "symbol": "WETH",
+    "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/assets/0x82aF49447D8a07e3bd95BD0d56f35241523fBab1/logo.png",
+    "coingeckoId": "ethereum"
+  }
+]

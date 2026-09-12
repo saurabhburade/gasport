@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CHAIN_LIST } from "@/config/chains";
 import {
   normalizeTokenLogoUri,
@@ -10,6 +10,82 @@ import {
 import type { Token } from "@/types/tokens";
 import { ChainIcon } from "./chain-icon";
 import { tokenIconBySymbol } from "./constants";
+
+const TOKEN_LOGO_CACHE = "gasport-token-logos-v1";
+const cacheableTokenLogoPrefixes = [
+  "https://coin-images.coingecko.com/",
+  "https://raw.githubusercontent.com/trustwallet/assets/",
+];
+
+function CachedTokenLogo({
+  alt,
+  className,
+  height,
+  onError,
+  src,
+  width,
+}: {
+  alt: string;
+  className: string;
+  height: number;
+  onError: () => void;
+  src: string;
+  width: number;
+}) {
+  const [cachedLogo, setCachedLogo] = useState<
+    { source: string; url: string } | undefined
+  >();
+  const displaySource = cachedLogo?.source === src ? cachedLogo.url : src;
+
+  useEffect(() => {
+    if (
+      !cacheableTokenLogoPrefixes.some((prefix) => src.startsWith(prefix)) ||
+      typeof window === "undefined" ||
+      !("caches" in window)
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    let objectUrl: string | undefined;
+    void (async () => {
+      try {
+        const cache = await window.caches.open(TOKEN_LOGO_CACHE);
+        let response = await cache.match(src);
+        if (!response) {
+          response = await fetch(src, { cache: "force-cache" });
+          if (!response.ok) return;
+          await cache.put(src, response.clone());
+        }
+        objectUrl = URL.createObjectURL(await response.blob());
+        if (cancelled) {
+          URL.revokeObjectURL(objectUrl);
+          return;
+        }
+        setCachedLogo({ source: src, url: objectUrl });
+      } catch {
+        // The original URL remains available when Cache Storage is unavailable.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [src]);
+
+  return (
+    <Image
+      alt={alt}
+      className={className}
+      height={height}
+      onError={onError}
+      src={displaySource}
+      unoptimized
+      width={width}
+    />
+  );
+}
 
 export function TokenMark({
   token,
@@ -22,8 +98,8 @@ export function TokenMark({
   const trustWalletIcon = trustWalletTokenLogoUri(token);
   const [failedIcons, setFailedIcons] = useState<string[]>([]);
   const icon = [
-    trustWalletIcon,
     tokenListIcon,
+    trustWalletIcon,
     tokenIconBySymbol[token.symbol.toUpperCase()],
   ].find((candidate) => candidate && !failedIcons.includes(candidate));
   const tokenChain = CHAIN_LIST.find((chain) => chain.id === token.chainId);
@@ -43,7 +119,7 @@ export function TokenMark({
       className={`relative flex shrink-0 items-center justify-center ${dimensions.token}`}
     >
       {icon ? (
-        <Image
+        <CachedTokenLogo
           alt={`${token.name} logo`}
           className={`${dimensions.token} rounded-full`}
           height={dimensions.pixels}
@@ -52,7 +128,6 @@ export function TokenMark({
               current.includes(icon) ? current : [...current, icon],
             );
           }}
-          sizes={`${dimensions.pixels}px`}
           src={icon}
           width={dimensions.pixels}
         />

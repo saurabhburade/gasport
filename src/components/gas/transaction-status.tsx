@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, CircleAlert, ExternalLink, LoaderCircle } from "lucide-react";
+import { Check, CircleAlert, ExternalLink, Loader } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DestinationChain } from "@/config/chains";
 import type { GasFlowState } from "@/types/gas";
@@ -59,7 +59,7 @@ export function TransactionStatus({
               ) : status.tone === "error" ? (
                 <CircleAlert className="size-4" />
               ) : status.tone === "active" ? (
-                <LoaderCircle className="size-4 animate-spin" />
+                <Loader className="size-4 animate-spin" />
               ) : null}
             </span>
           </div>

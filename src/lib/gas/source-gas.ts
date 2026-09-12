@@ -2,6 +2,18 @@ import { z } from "zod";
 
 export const SOURCE_GAS_PRICE_SCALE = 8;
 export const SOURCE_GAS_BUFFER_BPS = 12_500n;
+const USD_STABLE_SYMBOLS = new Set([
+  "USDC",
+  "USDT",
+  "USDT0",
+  "DAI",
+  "USD1",
+  "USDF",
+]);
+
+export function sponsorshipSourceTokenUsd(symbol: string, quotedUsd: number) {
+  return USD_STABLE_SYMBOLS.has(symbol.toUpperCase()) ? 1 : quotedUsd;
+}
 
 export const sourceGasEstimateRequestSchema = z
   .object({
@@ -97,17 +109,7 @@ export function calculateFixedSourceGasCharge({
     throw new Error("Enter at least $5 of the source token.");
   }
 
-  const feeUsdWhole =
-    inputUsdScaled < 100n * scale
-      ? 1n
-      : inputUsdScaled < 500n * scale
-        ? 2n
-        : inputUsdScaled < 1_000n * scale
-          ? 3n
-          : inputUsdScaled < 5_000n * scale
-            ? 4n
-            : 5n;
-  const feeAmount = ceilDiv(feeUsdWhole * scale * tokenUnit, sourceUsdScaled);
+  const feeAmount = ceilDiv(scale * tokenUnit, sourceUsdScaled);
   if (feeAmount >= amount) {
     throw new Error("Enter more than the sponsorship fee.");
   }
@@ -115,7 +117,7 @@ export function calculateFixedSourceGasCharge({
   return {
     feeAmount,
     feeAmountFormatted: formatScaledBigInt(feeAmount, sourceTokenDecimals),
-    feeUsd: feeUsdWhole.toString(),
+    feeUsd: "1",
   };
 }
 

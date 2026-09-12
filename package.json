@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:tunnel": "ngrok http http://127.0.0.1:3000",
+    "dev:tunnel:https": "ngrok http https://127.0.0.1:3000",
     "build": "next build",
     "test": "node --experimental-strip-types --test",
     "start": "next start",
@@ -12,7 +13,8 @@
     "biome": "biome",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "scan:secrets": "sh scripts/scan-secrets.sh"
+    "scan:secrets": "sh scripts/scan-secrets.sh",
+    "tokens:sync": "node scripts/sync-intents-token-lists.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

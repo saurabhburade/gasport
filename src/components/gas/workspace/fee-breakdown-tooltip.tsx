@@ -58,7 +58,7 @@ export function FeeBreakdownTooltip({ route }: { route: MarketQuote }) {
           </div>
           <p className="pt-1 font-sans text-[11px] text-background/60">
             {route.sourceGasSponsored
-              ? "Fixed USD tier converted to the source token, deducted from the input, and paid to the app in the same sponsored batch."
+              ? "Fixed $1 charge: one USD stablecoin or $1 worth of another token, deducted from the input and paid in the sponsored batch."
               : "No stablecoin gas charge is deducted when the wallet has enough native gas."}
           </p>
         </div>

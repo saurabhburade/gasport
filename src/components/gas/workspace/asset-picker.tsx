@@ -1,4 +1,5 @@
 import { Check, Search, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { BouncyAccordion } from "@/components/motion/bouncy-accordion";
@@ -48,6 +49,7 @@ export function AssetPicker({
   const [chainQuery, setChainQuery] = useState("");
   const [mobileChainsExpanded, setMobileChainsExpanded] = useState(false);
   const [selectedChainId, setSelectedChainId] = useState(token.chainId);
+  const reduceMotion = useReducedMotion() ?? false;
   const normalizedQuery = query.trim().toLowerCase();
   const sourceChainIds = new Set(tokens.map((item) => item.chainId));
   const sourceChains = CHAIN_LIST.filter((item) => sourceChainIds.has(item.id));
@@ -93,9 +95,9 @@ export function AssetPicker({
   }, [mode, token.chainId]);
 
   const balanceLabel = (item: Token) => {
-    if (!connected) return "—";
+    if (!connected) return "0.00";
     const balance = balanceByTokenKey[tokenKey(item)];
-    if (balance === undefined) return balancesPending ? "Loading…" : "—";
+    if (balance === undefined) return balancesPending ? "Loading…" : "0.00";
     return formatBalance(formatUnits(balance, item.decimals));
   };
 
@@ -297,47 +299,64 @@ export function AssetPicker({
                 </DialogClose>
               </div>
 
-              <div className="border-b border-border px-5 py-5">
-                <p className="text-xs text-muted-foreground">Popular</p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {trendingTokens.map((item) => (
-                    <button
-                      className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-muted px-1.5 text-xs font-semibold transition-colors hover:bg-secondary"
-                      key={tokenKey(item)}
-                      onClick={() => {
-                        onTokenChange(item);
-                        onOpenChange(false);
-                      }}
-                      type="button"
-                    >
-                      <TokenMark size="tiny" token={item} />
-                      {item.symbol}
-                    </button>
-                  ))}
-                  {trendingTokens.length === 0 && (
-                    <p className="py-3 text-sm text-muted-foreground">
-                      No tokens available on this chain.
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{
+                    opacity: 0,
+                    y: reduceMotion ? 0 : -4,
+                    transition: { duration: reduceMotion ? 0 : 0.1 },
+                  }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+                  key={activeChain?.id ?? "none"}
+                  transition={{
+                    duration: reduceMotion ? 0 : 0.16,
+                    ease: "easeOut",
+                  }}
+                >
+                  <div className="border-b border-border px-5 py-5">
+                    <p className="text-xs text-muted-foreground">Popular</p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {trendingTokens.map((item) => (
+                        <button
+                          className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-muted px-1.5 text-xs font-semibold transition-colors hover:bg-secondary"
+                          key={tokenKey(item)}
+                          onClick={() => {
+                            onTokenChange(item);
+                            onOpenChange(false);
+                          }}
+                          type="button"
+                        >
+                          <TokenMark size="tiny" token={item} />
+                          {item.symbol}
+                        </button>
+                      ))}
+                      {trendingTokens.length === 0 && (
+                        <p className="py-3 text-sm text-muted-foreground">
+                          No tokens available on this chain.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {tokensForActiveChain.length > 0 ? (
+                    <VirtualTokenList
+                      balanceLabel={balanceLabel}
+                      groups={[
+                        { chain: activeChain, tokens: tokensForActiveChain },
+                      ]}
+                      key={query}
+                      onOpenChange={onOpenChange}
+                      onTokenChange={onTokenChange}
+                      selectedToken={token}
+                    />
+                  ) : (
+                    <p className="flex h-[min(390px,calc(100vh-13rem))] min-h-48 items-center justify-center px-5 text-center text-sm text-muted-foreground">
+                      No matching tokens on {activeChain?.name}
                     </p>
                   )}
-                </div>
-              </div>
-
-              {tokensForActiveChain.length > 0 ? (
-                <VirtualTokenList
-                  balanceLabel={balanceLabel}
-                  groups={[
-                    { chain: activeChain, tokens: tokensForActiveChain },
-                  ]}
-                  key={`${activeChain?.id}-${query}`}
-                  onOpenChange={onOpenChange}
-                  onTokenChange={onTokenChange}
-                  selectedToken={token}
-                />
-              ) : (
-                <p className="px-5 py-14 text-center text-sm text-muted-foreground">
-                  No matching tokens on {activeChain?.name}
-                </p>
-              )}
+                </motion.div>
+              </AnimatePresence>
             </section>
           </div>
         </DialogContent>

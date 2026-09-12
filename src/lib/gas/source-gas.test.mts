@@ -7,6 +7,7 @@ import {
   formatScaledBigInt,
   requiresSourceGasSponsorship,
   resolveSourceGasFunding,
+  sponsorshipSourceTokenUsd,
 } from "./source-gas.ts";
 import { calculateNetRouteAmount } from "./source-gas-amount.ts";
 
@@ -22,14 +23,14 @@ test("subtracts the sponsored fee before quoting so the batch spends the exact g
   assert.equal(routeAmount + sponsorshipFee, grossAmount);
 });
 
-test("charges a fixed stablecoin sponsorship tier from one to five dollars", () => {
+test("charges one USD stablecoin for sponsorship regardless of input tier", () => {
   const cases = [
     ["5000000", "1000000", "1"],
     ["99999999", "1000000", "1"],
-    ["100000000", "2000000", "2"],
-    ["500000000", "3000000", "3"],
-    ["1000000000", "4000000", "4"],
-    ["5000000000", "5000000", "5"],
+    ["100000000", "1000000", "1"],
+    ["500000000", "1000000", "1"],
+    ["1000000000", "1000000", "1"],
+    ["5000000000", "1000000", "1"],
   ] as const;
 
   for (const [amount, expectedFee, expectedFormatted] of cases) {
@@ -56,7 +57,9 @@ test("charges a fixed stablecoin sponsorship tier from one to five dollars", () 
       }),
     /at least \$5/i,
   );
+});
 
+test("converts the fixed $1 charge into non-stablecoin units", () => {
   assert.deepEqual(
     calculateFixedSourceGasCharge({
       amount: 2_000_000_000_000_000n,
@@ -69,6 +72,24 @@ test("charges a fixed stablecoin sponsorship tier from one to five dollars", () 
       feeUsd: "1",
     },
   );
+
+  assert.deepEqual(
+    calculateFixedSourceGasCharge({
+      amount: 2_000_000_000_000_000_000n,
+      sourceTokenDecimals: 18,
+      sourceTokenUsd: 3,
+    }).feeAmount,
+    333_333_333_333_333_334n,
+  );
+});
+
+test("uses one unit for USD stablecoins and live prices for other tokens", () => {
+  for (const symbol of ["USDC", "USDT", "USDT0", "DAI", "USD1", "USDf"]) {
+    assert.equal(sponsorshipSourceTokenUsd(symbol, 0.98), 1);
+  }
+  for (const symbol of ["WETH", "WBTC", "EURe", "GBPe"]) {
+    assert.equal(sponsorshipSourceTokenUsd(symbol, 2_500), 2_500);
+  }
 });
 
 test("converts a buffered native gas estimate into source token units", () => {
