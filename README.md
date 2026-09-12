@@ -1,8 +1,6 @@
 # Gasport
 
-Gasport swaps an ERC-20 token on one EVM chain for native gas on another. It compares routes from NEAR Intents 1Click and LI.FI, then prepares the selected route for the connected wallet.
-
-The app can sponsor source-chain gas through Alchemy when the wallet does not have enough native gas. Demo mode keeps quotes and balances live but stops before transaction submission.
+Gasport swaps an ERC-20 token for native gas across EVM chains using NEAR intents, LI.FI intents and Alchemy paymaster.
 
 ![Gasport interface showing a USDC to ETH gas quote](docs/images/gasport-interface.png)
 
@@ -72,13 +70,7 @@ Copy `.env.example` to `.env.local`. Keep server variables out of client code an
 
 API routes validate external data with Zod before returning it to the browser. Token amounts stay as integers or decimal strings until display. Wallets sign and submit transactions; the app does not handle private keys.
 
-## Transfer flow
-
-1. The user selects a source token and destination chain.
-2. The server checks the source balance and estimates gas.
-3. NEAR Intents and LI.FI return normalized quotes. The app selects the highest output, then the shorter route when outputs match.
-4. Confirmation requests a fresh executable quote.
-5. The wallet submits the prepared calls and the app polls settlement status.
+![Gasport transfer flow from USDC on Base to ETH on Arbitrum via NEAR Intents or LI.FI](docs/images/gasport-transfer-flow.png)
 
 Sponsorship and platform fees are deducted from the entered amount. They are not added on top. A failed atomic wallet batch does not leave a partial route execution.
 
@@ -93,27 +85,5 @@ Sponsorship and platform fees are deducted from the entered amount. They are not
 | `pnpm format` | Format supported files with Biome. |
 | `pnpm build` | Create a production build. |
 | `pnpm scan:secrets` | Scan tracked files and Git history for high-signal credentials. |
-
-## Git hooks
-
-Husky installs the hooks when `pnpm install` runs. The pre-commit hook scans staged content for secrets and runs Biome. The commit message hook runs Commitlint with the Conventional Commits rules.
-
-Examples:
-
-```text
-feat: add a destination chain
-fix(routes): reject an expired quote
-docs: update setup instructions
-```
-
-## Checks before a pull request
-
-```bash
-pnpm test
-pnpm lint
-pnpm exec tsc --noEmit
-pnpm build
-pnpm scan:secrets
-```
 
 Provider references: [NEAR Intents 1Click](https://docs.near-intents.org/integration/distribution-channels/1click-api/sdk) and [LI.FI](https://docs.li.fi/).
