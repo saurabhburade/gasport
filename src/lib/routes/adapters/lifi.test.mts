@@ -214,6 +214,70 @@ test("uses the optional server key and prepares an exact ERC-20 approval", async
   }
 });
 
+test("retries a quote without the optional LI.FI key when it is invalid", async () => {
+  const oldKey = process.env.LIFI_API_KEY;
+  process.env.LIFI_API_KEY = "bad-key";
+  let calls = 0;
+  try {
+    await withFetch(
+      (_url, init) => {
+        calls += 1;
+        const key = new Headers(init.headers).get("x-lifi-api-key");
+        if (calls === 1) {
+          assert.equal(key, "bad-key");
+          return new Response(
+            JSON.stringify({ code: 1010, message: "Invalid API key" }),
+            { status: 401 },
+          );
+        }
+        assert.equal(key, null);
+        return new Response(JSON.stringify(quoteResponse()));
+      },
+      async () => {
+        const result = await lifiAdapter.getQuote(request);
+        assert.equal(result.provider, "lifi");
+      },
+    );
+    assert.equal(calls, 2);
+  } finally {
+    if (oldKey === undefined) delete process.env.LIFI_API_KEY;
+    else process.env.LIFI_API_KEY = oldKey;
+  }
+});
+
+test("does not retry unrelated LI.FI authorization failures", async () => {
+  const oldKey = process.env.LIFI_API_KEY;
+  process.env.LIFI_API_KEY = "test-only-key";
+  let calls = 0;
+  try {
+    await withFetch(
+      (_url, init) => {
+        calls += 1;
+        assert.equal(
+          new Headers(init.headers).get("x-lifi-api-key"),
+          "test-only-key",
+        );
+        return new Response(
+          JSON.stringify({ code: 1010, message: "Account restricted" }),
+          { status: 401 },
+        );
+      },
+      async () => {
+        await assert.rejects(
+          lifiAdapter.getQuote(request),
+          (error: unknown) =>
+            error instanceof RouteAdapterError &&
+            error.code === "provider_error",
+        );
+      },
+    );
+    assert.equal(calls, 1);
+  } finally {
+    if (oldKey === undefined) delete process.env.LIFI_API_KEY;
+    else process.env.LIFI_API_KEY = oldKey;
+  }
+});
+
 test("deducts the 1% platform fee before quoting and transfers it atomically", async () => {
   const oldRecipient = process.env.PLATFORM_FEE_RECIPIENT;
   process.env.PLATFORM_FEE_RECIPIENT = FEE_RECIPIENT;

@@ -52,7 +52,7 @@ Copy `.env.example` to `.env.local`. Keep server variables out of client code an
 | `NEAR_INTENTS_REFERRER_ID` | Optional 1Click referral ID. |
 | `NEAR_INTENTS_FEE_BPS` | App fee in basis points, from `0` to `500`. |
 | `NEAR_INTENTS_FEE_RECIPIENT` | Recipient required when the 1Click app fee is enabled. |
-| `LIFI_API_KEY` | Optional LI.FI API key. |
+| `LIFI_API_KEY` | Optional LI.FI API key for higher rate limits. Validate it with LI.FI's `/v1/keys/test`; invalid keys fall back to the public rate limit. |
 | `PLATFORM_FEE_RECIPIENT` | Recipient for the LI.FI platform fee. |
 | `SPONSORED_GAS_FEE_RECIPIENT` | Recipient for recovered source-gas costs. |
 | `ALCHEMY_API_KEY` | Alchemy Gas Manager API key. |

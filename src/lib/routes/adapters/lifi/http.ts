@@ -28,10 +28,10 @@ export function statusUrl(
   return url;
 }
 
-function providerHeaders() {
+function providerHeaders(includeApiKey: boolean) {
   const headers = new Headers({ accept: "application/json" });
   const apiKey = process.env.LIFI_API_KEY;
-  if (apiKey) headers.set("x-lifi-api-key", apiKey);
+  if (includeApiKey && apiKey) headers.set("x-lifi-api-key", apiKey);
   return headers;
 }
 
@@ -48,14 +48,15 @@ function isNoRouteResponse(status: number, body: unknown) {
   );
 }
 
-export async function fetchProviderJson(
+async function requestProviderJson(
   url: URL,
   operation: "quote" | "status",
+  includeApiKey: boolean,
 ) {
   let response: Response;
   try {
     response = await globalThis.fetch(url, {
-      headers: providerHeaders(),
+      headers: providerHeaders(includeApiKey),
       cache: "no-store",
     });
   } catch (error) {
@@ -68,6 +69,23 @@ export async function fetchProviderJson(
   } catch {
     if (!response.ok) throw providerError(`LI.FI ${operation} request failed.`);
     throw providerError(`LI.FI returned malformed ${operation} data.`);
+  }
+  return { body, response };
+}
+
+export async function fetchProviderJson(
+  url: URL,
+  operation: "quote" | "status",
+) {
+  let { body, response } = await requestProviderJson(url, operation, true);
+  if (
+    process.env.LIFI_API_KEY &&
+    response.status === 401 &&
+    isRecord(body) &&
+    body.code === 1010 &&
+    body.message === "Invalid API key"
+  ) {
+    ({ body, response } = await requestProviderJson(url, operation, false));
   }
   if (!response.ok) {
     if (isNoRouteResponse(response.status, body)) {
