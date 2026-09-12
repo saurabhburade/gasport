@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { AlchemyLogo, LifiLogo, NearIntentsLogo } from "@/assets/partner-logos";
 
@@ -48,7 +49,21 @@ export function DashboardShell({
 
       <footer className="border-y border-border/60">
         <div className="mx-auto flex w-full max-w-[1540px] flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs text-muted-foreground sm:px-8 lg:px-12">
-          <span>Non-custodial gas abstraction</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>Non-custodial gas abstraction</span>
+            <Link
+              className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
+              href="/how-it-works"
+            >
+              How it works
+            </Link>
+            <Link
+              className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
+              href="/terms"
+            >
+              Terms of Use
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             <span>Powered by</span>
             <a

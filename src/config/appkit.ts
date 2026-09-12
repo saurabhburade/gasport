@@ -75,10 +75,18 @@ export const appKit =
           url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
           icons: ["https://avatars.githubusercontent.com/u/179229932"],
         },
+        termsConditionsUrl: process.env.NEXT_PUBLIC_APP_URL
+          ? `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/terms`
+          : undefined,
         enableCoinbase: true,
         enableBaseAccount: true,
         coinbasePreference: "smartWalletOnly",
-        features: { analytics: false, swaps: false },
+        features: {
+          analytics: false,
+          email: false,
+          socials: false,
+          swaps: false,
+        },
         themeVariables: {
           "--apkt-accent": "var(--primary)",
           "--apkt-border-radius-master": "2px",
@@ -89,9 +97,12 @@ export const appKit =
     : undefined;
 
 // Reown project settings can override local feature flags during initialization.
-// Keep Swap hidden in the account menu even when the remote project enables it.
+// Keep email, social logins, and Swap hidden even when the remote project enables them.
 if (appKit) {
   void appKit.ready().then(() => {
-    appKit.updateRemoteFeatures({ swaps: false });
+    if (typeof window !== "undefined") {
+      appKit.setTermsConditionsUrl(`${window.location.origin}/terms`);
+    }
+    appKit.updateRemoteFeatures({ email: false, socials: false, swaps: false });
   });
 }

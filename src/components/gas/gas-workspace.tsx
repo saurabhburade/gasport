@@ -360,7 +360,7 @@ export function GasWorkspace() {
       }
       navigation={[
         {
-          active: activeView === "get-gas",
+          active: true,
           icon: <Fuel aria-hidden="true" className="size-4" />,
           label: "Gasport",
           onClick: () => setActiveView("get-gas"),

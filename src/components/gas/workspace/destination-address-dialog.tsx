@@ -36,12 +36,13 @@ export function DestinationAddressDialog({
         </DialogHeader>
         <div className="space-y-2">
           <Input
+            aria-label="Your destination chain account address"
             autoComplete="off"
             id="destination-address"
             aria-invalid={Boolean(error)}
             className="h-11 text-sm"
             onChange={(event) => onDraftChange(event.target.value)}
-            placeholder="0xA1b63a6Ca51b8CA5Bdb10866ac7C0C621D881800"
+            placeholder="Your destination chain account address"
             spellCheck={false}
             value={draft}
           />

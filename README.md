@@ -45,6 +45,7 @@ Copy `.env.example` to `.env.local`. Keep server variables out of client code an
 
 | Variable | Use |
 | --- | --- |
+| `SIWX_SESSION_SECRET` | Stable private key for wallet-connection terms authentication cookies. Required in production unless `NEXTAUTH_SECRET` is set. |
 | `NEAR_INTENTS_API_KEY` | Authenticated 1Click quotes, deposits, and transaction history. |
 | `NEAR_INTENTS_API_URL` | Optional 1Click API override. |
 | `NEAR_INTENTS_EXPLORER_API_URL` | Optional explorer API override. |

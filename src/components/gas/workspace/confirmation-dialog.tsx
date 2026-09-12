@@ -198,7 +198,7 @@ export function ConfirmationDialog({
                 className="border-0 bg-destructive/10 py-3"
               >
                 <CircleAlert className="size-4" />
-                <AlertTitle className="min-w-0 break-words text-xs leading-5">
+                <AlertTitle className="min-w-0 break-words leading-4">
                   {error ?? "Transaction failed."}
                 </AlertTitle>
               </Alert>
