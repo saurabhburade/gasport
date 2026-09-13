@@ -99,6 +99,61 @@ test("client quote deducts one stablecoin or exactly $1 of a volatile token", as
   }
 });
 
+test("connected wallet without source-chain paymaster support is not quoted as sponsored", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_input, init) => {
+    const body = JSON.parse(String(init?.body)) as {
+      method: string;
+      params: [{ data: string }];
+    };
+    if (body.method === "eth_call") {
+      return Response.json({
+        result:
+          body.params[0].data === "0x313ce567"
+            ? "0x08"
+            : roundData(250_000_000_000n),
+      });
+    }
+    return Response.json({
+      result:
+        body.method === "eth_estimateGas"
+          ? "0xfde8"
+          : body.method === "eth_gasPrice"
+            ? "0x3b9aca00"
+            : "0x0",
+    });
+  };
+  try {
+    const token = sourceTokensFromCatalog(baseTokens).find(
+      (item) => item.symbol === "USDC",
+    );
+    assert.ok(token);
+    const estimate = await estimateSourceGasInBrowser({
+      account,
+      amount: 5_000_000n,
+      chain: baseChain,
+      config: { feeRecipient, sponsoredChainIds: [8453], bundlerUrls: {} },
+      signal: new AbortController().signal,
+      token,
+      walletConnected: true,
+      walletProvider: {
+        request: async () => ({
+          "0x2105": {
+            atomic: { status: "supported" },
+            paymasterService: { supported: false },
+          },
+        }),
+      },
+    });
+    assert.equal(estimate.executionAvailable, false);
+    assert.equal(estimate.sponsorshipRequired, false);
+    assert.equal(estimate.feeAmount, "0");
+    assert.match(estimate.executionError ?? "", /does not report support/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("falls back to a fresh public token price when no feed is mapped", async () => {
   const originalFetch = globalThis.fetch;
   let tokenRequests = 0;

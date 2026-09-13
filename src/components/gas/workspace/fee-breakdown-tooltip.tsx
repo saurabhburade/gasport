@@ -46,13 +46,13 @@ export function FeeBreakdownTooltip({ route }: { route: MarketQuote }) {
             <span className="whitespace-nowrap">
               {route.sourceGasSponsored
                 ? `${route.sourceGasFeeToken} ${route.inputSymbol}`
-                : "Paid by wallet"}
+                : `~${route.sourceGasNativeAmount} ${route.sourceGasNativeSymbol}`}
             </span>
           </div>
           <p className="pt-1 font-sans text-[11px] text-background/60">
             {route.sourceGasSponsored
               ? "Fixed $1 charge: one USD stablecoin or $1 worth of another token, deducted from the input and paid in the sponsored batch."
-              : "No stablecoin gas charge is deducted when the wallet has enough native gas."}
+              : "Estimated with a safety buffer. The wallet pays the final network fee in native gas; no stablecoin gas charge is deducted."}
           </p>
         </div>
       </TooltipContent>

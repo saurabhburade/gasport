@@ -42,6 +42,7 @@ import {
   WalletCallsTerminalError,
   type WalletRpcProvider,
 } from "@/lib/gas/wallet-calls";
+import { walletSupportsSponsoredAtomicCalls } from "@/lib/gas/wallet-paymaster-capability";
 import { getLifiStatus } from "@/lib/routes/adapters/lifi/status";
 import { NearOneClickRouteAdapter } from "@/lib/routes/adapters/near-oneclick";
 import type { NearClientConfig } from "@/lib/routes/types";
@@ -239,6 +240,18 @@ export function useGasExecution({
           })
         : undefined;
       if (sponsorshipRequired) {
+        if (
+          !(await walletSupportsSponsoredAtomicCalls({
+            account,
+            chainId: current.route.sourceChainId,
+            provider,
+          }))
+        ) {
+          throw new RouteSimulationError(
+            "This wallet does not support sponsored atomic calls on the source chain. No transaction was submitted. Refresh the quote or add native gas.",
+            true,
+          );
+        }
         if (!paymasterUrl) {
           throw new Error("Source-chain gas sponsorship is unavailable.");
         }

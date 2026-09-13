@@ -18,6 +18,7 @@ import {
 import { QuoteUpdateGate } from "@/lib/gas/quote-update-gate";
 import type { SourceGasEstimate } from "@/lib/gas/source-gas";
 import { calculateNetRouteAmount } from "@/lib/gas/source-gas-amount";
+import type { WalletRpcProvider } from "@/lib/gas/wallet-calls";
 import { LifiRouteAdapter } from "@/lib/routes/adapters/lifi";
 import { NearOneClickRouteAdapter } from "@/lib/routes/adapters/near-oneclick";
 import type {
@@ -27,6 +28,7 @@ import type {
 import type { GasQuote } from "@/types/gas";
 import type { Token } from "@/types/tokens";
 import {
+  formatNativeGasEstimate,
   formatReceive,
   formatTokenFee,
   formatUsd,
@@ -49,6 +51,8 @@ export function useLiveRouteQuote({
   nearClientConfig,
   sourceGasConfig,
   token,
+  walletConnected,
+  walletProvider,
 }: {
   amount: string;
   setWorkspaceError: Dispatch<SetStateAction<string | null>>;
@@ -60,6 +64,8 @@ export function useLiveRouteQuote({
   nearClientConfig: NearClientConfig;
   sourceGasConfig: ClientSourceGasConfig;
   token: Token;
+  walletConnected: boolean;
+  walletProvider?: WalletRpcProvider;
 }) {
   const [liveQuote, setLiveQuote] = useState<NormalizedRouteQuote | null>(null);
   const [sourceGasEstimate, setSourceGasEstimate] =
@@ -122,6 +128,8 @@ export function useLiveRouteQuote({
           config: sourceGasConfig,
           signal: controller.signal,
           token,
+          walletConnected,
+          walletProvider,
         });
         if (!quoteGate.accepts(controller)) return;
         const feeAmount = BigInt(gasEstimate.feeAmount);
@@ -206,6 +214,8 @@ export function useLiveRouteQuote({
     setWorkspaceError,
     sourceGasConfig,
     token,
+    walletConnected,
+    walletProvider,
   ]);
 
   useEffect(() => {
@@ -263,6 +273,8 @@ export function useLiveRouteQuote({
 
   const marketQuote = useMemo<MarketQuote | undefined>(() => {
     if (!quote || !liveQuote || !sourceGasEstimate) return undefined;
+    const sourceChain = CHAIN_LIST.find((chain) => chain.id === token.chainId);
+    if (!sourceChain) return undefined;
     const inputUsd = Number(liveQuote.amountInFormatted);
     const outputUsd = Number(liveQuote.amountOutUsd);
     const routeCostUsd =
@@ -285,6 +297,11 @@ export function useLiveRouteQuote({
       output: formatReceive(liveQuote.amountOutFormatted),
       providerLabel: providerLabelById[liveQuote.provider],
       sourceGasFeeToken: formatTokenFee(sourceGasEstimate.feeAmountFormatted),
+      sourceGasNativeAmount: formatNativeGasEstimate(
+        sourceGasEstimate.requiredNativeWei,
+        sourceChain.decimals,
+      ),
+      sourceGasNativeSymbol: sourceChain.symbol,
       sourceGasSponsored: sourceGasEstimate.sponsorshipRequired,
       executionDurationSeconds: liveQuote.durationSeconds,
     };

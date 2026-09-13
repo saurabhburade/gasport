@@ -9,6 +9,8 @@ export type MarketQuote = {
   output: string;
   providerLabel: string;
   sourceGasFeeToken: string;
+  sourceGasNativeAmount: string;
+  sourceGasNativeSymbol: string;
   sourceGasSponsored: boolean;
   executionDurationSeconds?: number;
 };

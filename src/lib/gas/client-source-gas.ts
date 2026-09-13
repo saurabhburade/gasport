@@ -13,6 +13,8 @@ import {
   sponsorshipSourceTokenUsd,
 } from "./source-gas.ts";
 import { encodeErc20Transfer } from "./wallet-calls/common.ts";
+import type { WalletRpcProvider } from "./wallet-calls/types.ts";
+import { walletSupportsSponsoredAtomicCalls } from "./wallet-paymaster-capability.ts";
 
 export type ClientSourceGasConfig = {
   feeRecipient?: Address;
@@ -139,6 +141,8 @@ export async function estimateSourceGasInBrowser({
   config,
   signal,
   token,
+  walletConnected = false,
+  walletProvider,
 }: {
   account: Address;
   amount: bigint;
@@ -146,6 +150,8 @@ export async function estimateSourceGasInBrowser({
   config: ClientSourceGasConfig;
   signal: AbortSignal;
   token: Token;
+  walletConnected?: boolean;
+  walletProvider?: WalletRpcProvider;
 }): Promise<SourceGasEstimate> {
   if (chain.id !== token.chainId || !chain.intentsAssetId) {
     throw new Error("Source gas recovery is unavailable on this chain.");
@@ -191,7 +197,19 @@ export async function estimateSourceGasInBrowser({
     sourceTokenUsd: sponsorshipSourceTokenUsd(token.symbol, prices.sourcePrice),
   });
   const nativeBalanceWei = rpcQuantity(balanceBody);
-  const sponsorshipAvailable = config.sponsoredChainIds.includes(chain.id);
+  const sponsorshipConfigured = config.sponsoredChainIds.includes(chain.id);
+  const nativeGasRequired = nativeBalanceWei < charge.bufferedNativeWei;
+  const sponsorshipAvailable =
+    sponsorshipConfigured &&
+    (!nativeGasRequired ||
+      !walletConnected ||
+      (walletProvider !== undefined &&
+        (await walletSupportsSponsoredAtomicCalls({
+          account,
+          chainId: chain.id,
+          provider: walletProvider,
+        }))));
+  if (signal.aborted) throw signal.reason;
   const funding = resolveSourceGasFunding({
     nativeBalanceWei,
     quoteOnly: true,
@@ -201,7 +219,9 @@ export async function estimateSourceGasInBrowser({
   const sponsorshipRequired = funding.sponsorshipRequired;
   const recipientAvailable =
     !sponsorshipRequired || Boolean(config.feeRecipient);
-  const fundingError = `Gas sponsorship is not configured for ${chain.name}. Fund the connected wallet with native ${chain.symbol}.`;
+  const fundingError = sponsorshipConfigured
+    ? `This wallet does not report support for sponsored atomic calls on ${chain.name}. Add native ${chain.symbol} for gas, or use a wallet and source chain that support sponsorship.`
+    : `Gas sponsorship is not configured for ${chain.name}. Fund the connected wallet with native ${chain.symbol}.`;
   const recipientError =
     "Configure SPONSORED_GAS_FEE_RECIPIENT with the EVM address that receives the sponsorship fee.";
 

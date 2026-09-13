@@ -4,7 +4,7 @@ import { hasInsufficientBalance } from "@/lib/amount-input";
 import type { SourceGasEstimate } from "@/lib/gas/source-gas";
 import type { GasFlowState, GasQuote } from "@/types/gas";
 import type { Token } from "@/types/tokens";
-import { formatBalance } from "./common";
+import { formatBalance, formatNativeGasEstimate } from "./common";
 import type { InlineAlert } from "./types";
 import type { QuoteStatus } from "./use-live-route-quote";
 
@@ -48,19 +48,15 @@ export function workspaceAlert({
       !sourceGasEstimate.executionAvailable,
   );
   const availableSourceGas = sourceGasEstimate
-    ? formatBalance(
-        formatUnits(
-          BigInt(sourceGasEstimate.nativeBalanceWei),
-          sourceChain.decimals,
-        ),
+    ? formatNativeGasEstimate(
+        sourceGasEstimate.nativeBalanceWei,
+        sourceChain.decimals,
       )
     : "-";
   const requiredSourceGas = sourceGasEstimate
-    ? formatBalance(
-        formatUnits(
-          BigInt(sourceGasEstimate.requiredNativeWei),
-          sourceChain.decimals,
-        ),
+    ? formatNativeGasEstimate(
+        sourceGasEstimate.requiredNativeWei,
+        sourceChain.decimals,
       )
     : "-";
 
@@ -87,7 +83,7 @@ export function workspaceAlert({
   }
   if (sourceGasUnavailable) {
     return {
-      description: `Available ${availableSourceGas} ${sourceChain.symbol}; ${requiredSourceGas} ${sourceChain.symbol} required. Add ${sourceChain.symbol} or enable gas sponsorship for ${sourceChain.name}.`,
+      description: `Available ${availableSourceGas} ${sourceChain.symbol}; approximately ${requiredSourceGas} ${sourceChain.symbol} required. ${sourceGasEstimate?.executionError ?? `Add ${sourceChain.symbol} or enable gas sponsorship for ${sourceChain.name}.`}`,
       key: "insufficient-source-gas",
       title: `Insufficient ${sourceChain.symbol} for gas`,
     };

@@ -1,6 +1,10 @@
 "use client";
 
-import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import {
+  useAppKit,
+  useAppKitAccount,
+  useAppKitProvider,
+} from "@reown/appkit/react";
 import { Fuel } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -47,6 +51,7 @@ import {
   shouldResetExecutionOnDialogClose,
   shouldResetExecutionOnDraftChange,
 } from "@/lib/gas/confirmation-dialog-state";
+import type { WalletRpcProvider } from "@/lib/gas/wallet-calls";
 import { LifiRouteAdapter } from "@/lib/routes/adapters/lifi";
 import { NearOneClickRouteAdapter } from "@/lib/routes/adapters/near-oneclick";
 import type { NearClientConfig, PreparedRoute } from "@/lib/routes/types";
@@ -63,6 +68,7 @@ export function GasWorkspace({
 }) {
   const { open: openAppKit } = useAppKit();
   const appKitAccount = useAppKitAccount();
+  const { walletProvider } = useAppKitProvider<WalletRpcProvider>("eip155");
   const reduceMotion = useReducedMotion();
   const walletAddress = appKitAccount.address as Address | undefined;
   const [demoConnected, setDemoConnected] = useState(false);
@@ -161,6 +167,8 @@ export function GasWorkspace({
     nearClientConfig,
     sourceGasConfig,
     token,
+    walletConnected: Boolean(appKitAccount.isConnected),
+    walletProvider,
   });
 
   useEffect(() => {
@@ -276,6 +284,8 @@ export function GasWorkspace({
         config: sourceGasConfig,
         signal: AbortSignal.timeout(20_000),
         token,
+        walletConnected: Boolean(appKitAccount.isConnected),
+        walletProvider,
       });
       if (!freshGas.executionAvailable) {
         throw new Error(

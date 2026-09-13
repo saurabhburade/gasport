@@ -1,4 +1,4 @@
-import { type Address, zeroAddress } from "viem";
+import { type Address, formatUnits, zeroAddress } from "viem";
 import { DEFAULT_SLIPPAGE_BPS } from "@/components/gas/workspace/constants";
 import type { DestinationChain } from "@/config/chains";
 import type {
@@ -101,8 +101,20 @@ export function formatUsd(value: string) {
 export function formatTokenFee(value: number | string) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "-";
-  if (amount > 0 && amount < 0.0001) return "<0.0001";
+  if (amount > 0 && amount < 0.0001) {
+    return new Intl.NumberFormat(undefined, {
+      maximumSignificantDigits: 4,
+    }).format(amount);
+  }
   return new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 4,
+  }).format(amount);
+}
+
+export function formatNativeGasEstimate(value: string, decimals: number) {
+  const amount = Number(formatUnits(BigInt(value), decimals));
+  if (!Number.isFinite(amount)) return "-";
+  return new Intl.NumberFormat(undefined, {
+    maximumSignificantDigits: 4,
   }).format(amount);
 }
