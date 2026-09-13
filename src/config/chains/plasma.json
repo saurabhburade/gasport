@@ -13,7 +13,7 @@
   "intentsAssetId": "nep141:plasma.omft.near",
   "explorerUrl": "https://plasmascan.to",
   "publicRpcUrl": "https://rpc.plasma.to",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 },
   "chainlinkUsdFeed": {
     "address": "0xF932477C37715aE6657Ab884414Bd9876FE3f750",
     "heartbeatSeconds": 86400

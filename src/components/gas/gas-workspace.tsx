@@ -146,6 +146,7 @@ export function GasWorkspace({
     quote,
     quoteError,
     quoteStatus,
+    pauseQuoteUpdates,
     refreshQuote,
     setLiveQuote,
     sourceGasEstimate,
@@ -235,6 +236,7 @@ export function GasWorkspace({
       setIsExecutionDialogDismissed(false);
       return;
     }
+    pauseQuoteUpdates();
     setState("confirming");
   };
   const reset = () => {

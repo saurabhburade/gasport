@@ -13,7 +13,7 @@
   "intentsAssetId": "nep141:base.omft.near",
   "explorerUrl": "https://basescan.org",
   "publicRpcUrl": "https://base.drpc.org",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 },
   "chainlinkUsdFeed": {
     "address": "0x5731Ae06077c79A3B292498940211E0aE7130bd3",
     "heartbeatSeconds": 1200

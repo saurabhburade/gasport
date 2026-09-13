@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { encodeAbiParameters, encodeErrorResult } from "viem";
 import type { PreparedRoute } from "../routes/types";
 import {
   assertSponsorshipPreflight,
@@ -220,6 +221,44 @@ test("decodes LI.FI cumulative slippage from a failed wallet batch", () => {
       error.transactionHash === `0x${"14".repeat(32)}` &&
       error.message ===
         "Price moved beyond the minimum received amount. Refresh the quote and try again.",
+  );
+});
+
+test("explains an insufficient-output revert in a failed wallet operation", () => {
+  const revertReason = encodeErrorResult({
+    abi: [{ type: "error", name: "Error", inputs: [{ type: "string" }] }],
+    errorName: "Error",
+    args: ["Insufficient output"],
+  });
+  const transactionHash = `0x${"2c".repeat(32)}`;
+
+  assert.throws(
+    () =>
+      parseWalletCallsStatus({
+        status: 500,
+        receipts: [
+          {
+            status: "0x1",
+            transactionHash,
+            logs: [
+              {
+                topics: [
+                  "0x1c4fada7374c0a9ee8841fc38afe82932dc0f8e69012e927f061a8bae611a201",
+                ],
+                data: encodeAbiParameters(
+                  [{ type: "uint256" }, { type: "bytes" }],
+                  [14n, revertReason],
+                ),
+              },
+            ],
+          },
+        ],
+      }),
+    (error: unknown) =>
+      error instanceof WalletCallsTerminalError &&
+      error.transactionHash === transactionHash &&
+      error.message ===
+        "The swap could not meet its minimum output. Refresh the quote and try again.",
   );
 });
 

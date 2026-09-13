@@ -125,6 +125,32 @@ test("sends configured fees and referral directly to public 1Click", async () =>
   }
 });
 
+test("sends the 4% self-funded 1Click app fee within the public total fee cap", async () => {
+  const originalFetch = globalThis.fetch;
+  let calledBody: Record<string, unknown> | undefined;
+  globalThis.fetch = async (_input, init) => {
+    calledBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    return {
+      ok: false,
+      status: 400,
+      text: async () => JSON.stringify({ message: "No route found." }),
+    } as Response;
+  };
+
+  try {
+    await assert.rejects(
+      new NearOneClickRouteAdapter({ feeRecipient: address }).getQuote({
+        ...request,
+        sponsorshipRequired: false,
+      }),
+      /could not find a route/,
+    );
+    assert.deepEqual(calledBody?.appFees, [{ fee: 400, recipient: address }]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("accepts provider-added app fees without losing configured fee matching", () => {
   const configured = [{ fee: 100, recipient: address }];
   const returned = [...configured, { fee: 25, recipient: "provider.near" }];

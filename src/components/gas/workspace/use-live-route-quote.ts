@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { type Address, formatUnits, parseUnits, zeroAddress } from "viem";
@@ -14,6 +15,7 @@ import {
   type ClientSourceGasConfig,
   estimateSourceGasInBrowser,
 } from "@/lib/gas/client-source-gas";
+import { QuoteUpdateGate } from "@/lib/gas/quote-update-gate";
 import type { SourceGasEstimate } from "@/lib/gas/source-gas";
 import { calculateNetRouteAmount } from "@/lib/gas/source-gas-amount";
 import { LifiRouteAdapter } from "@/lib/routes/adapters/lifi";
@@ -65,11 +67,17 @@ export function useLiveRouteQuote({
   const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>("idle");
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [quoteRefreshKey, setQuoteRefreshKey] = useState(0);
+  const quoteGate = useRef(new QuoteUpdateGate()).current;
+
+  useEffect(() => {
+    if (quoteUpdatesEnabled) quoteGate.resume();
+    else quoteGate.pause();
+  }, [quoteGate, quoteUpdatesEnabled]);
 
   useEffect(() => {
     // A manual refresh must request fresh provider quotes even if inputs match.
     void quoteRefreshKey;
-    if (!quoteUpdatesEnabled) return;
+    if (!quoteUpdatesEnabled || !quoteGate.canUpdate) return;
 
     let inputAmount: bigint;
     try {
@@ -83,7 +91,6 @@ export function useLiveRouteQuote({
       return;
     }
 
-    const controller = new AbortController();
     setLiveQuote(null);
     setSourceGasEstimate(null);
     setWorkspaceError(null);
@@ -99,6 +106,8 @@ export function useLiveRouteQuote({
       return;
     }
 
+    const controller = new AbortController();
+    quoteGate.track(controller);
     setQuoteStatus("loading");
     const timer = window.setTimeout(async () => {
       try {
@@ -114,6 +123,7 @@ export function useLiveRouteQuote({
           signal: controller.signal,
           token,
         });
+        if (!quoteGate.accepts(controller)) return;
         const feeAmount = BigInt(gasEstimate.feeAmount);
         const quotedAmount = calculateNetRouteAmount({
           grossAmount: inputAmount,
@@ -137,7 +147,7 @@ export function useLiveRouteQuote({
             AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
           ),
         ]);
-        if (controller.signal.aborted) return;
+        if (!quoteGate.accepts(controller)) return;
         const quotes = results.flatMap((result) =>
           result.status === "fulfilled" ? [result.value] : [],
         );
@@ -166,7 +176,7 @@ export function useLiveRouteQuote({
         setLiveQuote(selected);
         setQuoteStatus("ready");
       } catch (requestError) {
-        if (controller.signal.aborted) return;
+        if (!quoteGate.accepts(controller)) return;
         setLiveQuote(null);
         setSourceGasEstimate(null);
         setQuoteStatus("error");
@@ -180,6 +190,7 @@ export function useLiveRouteQuote({
 
     return () => {
       controller.abort();
+      quoteGate.release(controller);
       window.clearTimeout(timer);
     };
   }, [
@@ -187,6 +198,7 @@ export function useLiveRouteQuote({
     destination,
     inputLimit,
     nearClientConfig,
+    quoteGate,
     quoteRefreshKey,
     quoteUpdatesEnabled,
     quoteWalletAddress,
@@ -197,7 +209,13 @@ export function useLiveRouteQuote({
   ]);
 
   useEffect(() => {
-    if (!quoteUpdatesEnabled || !liveQuote || quoteStatus !== "ready") return;
+    if (
+      !quoteUpdatesEnabled ||
+      !quoteGate.canUpdate ||
+      !liveQuote ||
+      quoteStatus !== "ready"
+    )
+      return;
     const expiresAt = marketQuoteExpiry(liveQuote);
     const remaining = expiresAt - Date.now();
     if (remaining <= 0) {
@@ -206,19 +224,22 @@ export function useLiveRouteQuote({
       return;
     }
     const timer = window.setTimeout(() => {
+      if (!quoteGate.canUpdate) return;
       setLiveQuote(null);
       setQuoteRefreshKey((current) => current + 1);
     }, remaining);
     return () => window.clearTimeout(timer);
-  }, [liveQuote, quoteStatus, quoteUpdatesEnabled]);
+  }, [liveQuote, quoteGate, quoteStatus, quoteUpdatesEnabled]);
 
   useEffect(() => {
-    if (!quoteUpdatesEnabled || quoteStatus !== "error") return;
+    if (!quoteUpdatesEnabled || !quoteGate.canUpdate || quoteStatus !== "error")
+      return;
     const timer = window.setTimeout(() => {
+      if (!quoteGate.canUpdate) return;
       setQuoteRefreshKey((current) => current + 1);
     }, 10_000);
     return () => window.clearTimeout(timer);
-  }, [quoteStatus, quoteUpdatesEnabled]);
+  }, [quoteGate, quoteStatus, quoteUpdatesEnabled]);
 
   const quote = useMemo<GasQuote | null>(() => {
     if (!liveQuote || !destination.intentsAssetId) return null;
@@ -273,12 +294,17 @@ export function useLiveRouteQuote({
     setQuoteRefreshKey((current) => current + 1);
   }, []);
 
+  const pauseQuoteUpdates = useCallback(() => {
+    quoteGate.pause();
+  }, [quoteGate]);
+
   return {
     liveQuote,
     marketQuote,
     quote,
     quoteError,
     quoteStatus,
+    pauseQuoteUpdates,
     refreshQuote,
     setLiveQuote,
     sourceGasEstimate,

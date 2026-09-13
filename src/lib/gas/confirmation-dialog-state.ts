@@ -31,6 +31,7 @@ export function isConfirmationDialogOpen(
     flowState === "confirming" ||
     flowState === "failed" ||
     flowState === "switching_network" ||
+    flowState === "simulating" ||
     flowState === "wallet_signature" ||
     flowState === "submitting" ||
     flowState === "deposit_pending" ||

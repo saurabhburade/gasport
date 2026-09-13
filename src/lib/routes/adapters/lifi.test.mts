@@ -280,11 +280,11 @@ test("deducts the 1% platform fee before quoting and transfers it atomically", a
   );
 });
 
-test("deducts the chain's 5% platform fee when source gas is self-funded", async () => {
+test("deducts the chain's 4% platform fee when source gas is self-funded", async () => {
   await withFetch(
     (url) => {
-      assert.equal(url.searchParams.get("fromAmount"), "950000");
-      return new Response(JSON.stringify(quoteResponseForAmount("950000")));
+      assert.equal(url.searchParams.get("fromAmount"), "960000");
+      return new Response(JSON.stringify(quoteResponseForAmount("960000")));
     },
     async () => {
       const prepared = await new LifiRouteAdapter(FEE_RECIPIENT).prepare({
@@ -292,16 +292,16 @@ test("deducts the chain's 5% platform fee when source gas is self-funded", async
         sponsorshipRequired: false,
       });
       assert.deepEqual(prepared.quote.fees[0], {
-        amount: "0.05",
+        amount: "0.04",
         deductedFromInput: true,
         kind: "platform",
         label: "Platform fee",
-        rateBps: 500,
+        rateBps: 400,
         token: { decimals: 6, symbol: "USDC" },
       });
       assert.match(
         prepared.calls[0]?.data ?? "",
-        /000000000000000000000000000000000000000000000000000000000000c350$/,
+        /0000000000000000000000000000000000000000000000000000000000009c40$/,
       );
     },
   );

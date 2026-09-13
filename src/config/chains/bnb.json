@@ -13,7 +13,7 @@
   "intentsAssetId": "nep245:v2_1.omni.hot.tg:56_11111111111111111111",
   "explorerUrl": "https://bscscan.com",
   "publicRpcUrl": "https://56.rpc.thirdweb.com",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 },
   "chainlinkUsdFeed": {
     "address": "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
     "heartbeatSeconds": 27

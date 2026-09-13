@@ -13,5 +13,5 @@
   "intentsAssetId": "nep141:gnosis.omft.near",
   "explorerUrl": "https://gnosisscan.io",
   "publicRpcUrl": "https://rpc.gnosischain.com",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 }
 }

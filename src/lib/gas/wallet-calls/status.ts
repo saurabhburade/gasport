@@ -37,6 +37,15 @@ function walletCallsFailureMessage(
       ) {
         return "Price moved beyond the minimum received amount. Refresh the quote and try again.";
       }
+      if (revertReason.slice(0, 10).toLowerCase() === "0x08c379a0") {
+        const [reason] = decodeAbiParameters(
+          [{ type: "string" }],
+          `0x${revertReason.slice(10)}`,
+        );
+        if (reason.toLowerCase() === "insufficient output") {
+          return "The swap could not meet its minimum output. Refresh the quote and try again.";
+        }
+      }
     } catch {
       // Ignore malformed wallet-provided logs and retain the safe fallback.
     }

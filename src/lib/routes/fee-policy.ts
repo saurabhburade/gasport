@@ -6,7 +6,7 @@ export type PlatformFeeConfig = Readonly<{
 }>;
 
 const DEFAULT_PLATFORM_FEE_CONFIG: PlatformFeeConfig = {
-  selfFundedBps: 500,
+  selfFundedBps: 400,
   sponsoredBps: 100,
 };
 

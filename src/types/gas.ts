@@ -6,6 +6,7 @@ export type GasFlowState =
   | "quoted"
   | "confirming"
   | "switching_network"
+  | "simulating"
   | "wallet_signature"
   | "submitting"
   | "deposit_pending"

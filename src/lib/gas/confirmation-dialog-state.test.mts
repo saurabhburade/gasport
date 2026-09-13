@@ -19,6 +19,7 @@ test("an unfinished transaction is visible until the user dismisses it", () => {
 
 test("an authorization prompt remains visible while it is active", () => {
   assert.equal(isConfirmationDialogOpen("wallet_signature", false), true);
+  assert.equal(isConfirmationDialogOpen("simulating", false), true);
 });
 
 test("a pending wallet authorization cannot show the confirm action again", () => {
@@ -78,6 +79,7 @@ test("a terminal source failure refreshes the quote instead of retrying a dead c
 test("quote updates stay frozen for the complete modal lifecycle", () => {
   assert.equal(shouldFetchQuotes("quoted"), true);
   assert.equal(shouldFetchQuotes("confirming"), false);
+  assert.equal(shouldFetchQuotes("simulating"), false);
   assert.equal(shouldFetchQuotes("wallet_signature"), false);
   assert.equal(shouldFetchQuotes("solver_executing"), false);
   assert.equal(shouldFetchQuotes("failed"), false);

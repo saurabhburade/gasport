@@ -19,6 +19,7 @@ export const QUOTE_DEBOUNCE_MS = 450;
 
 export const progressIndex: Partial<Record<GasFlowState, number>> = {
   switching_network: 0,
+  simulating: 0,
   wallet_signature: 0,
   submitting: 1,
   deposit_pending: 1,

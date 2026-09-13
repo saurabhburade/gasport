@@ -13,5 +13,5 @@
   "intentsAssetId": "nep245:v2_1.omni.hot.tg:137_11111111111111111111",
   "explorerUrl": "https://polygonscan.com",
   "publicRpcUrl": "https://polygon.drpc.org",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 }
 }

@@ -12,5 +12,5 @@
   "intentsAssetId": "nep141:bera.omft.near",
   "explorerUrl": "https://berascan.com",
   "publicRpcUrl": "https://rpc.berachain.com",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 }
 }

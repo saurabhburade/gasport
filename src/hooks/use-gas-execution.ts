@@ -27,6 +27,10 @@ import { executionErrorMessage } from "@/lib/gas/execution-errors";
 import { resolveExecutionWallet } from "@/lib/gas/execution-wallet";
 import { validateNearExecutionInput } from "@/lib/gas/near-execution";
 import {
+  RouteSimulationError,
+  simulateRouteCalls,
+} from "@/lib/gas/simulate-route-calls";
+import {
   assertSponsorshipPreflight,
   createWalletSendCallsRequest,
   getPaymasterProxyUrl,
@@ -217,6 +221,14 @@ export function useGasExecution({
         return next;
       }
 
+      const quoteExpiry = Date.parse(current.route.quote.expiresAt);
+      if (!Number.isFinite(quoteExpiry) || quoteExpiry <= Date.now()) {
+        throw new RouteSimulationError(
+          "The prepared quote expired before wallet authorization. Refresh the quote before trying again.",
+          true,
+        );
+      }
+
       const sponsorshipRequired =
         current.route.sponsorshipRequired ??
         current.route.sourceGasFee !== undefined;
@@ -245,7 +257,6 @@ export function useGasExecution({
           .catch(() => undefined);
         assertSponsorshipPreflight(sponsorshipResponse.ok, sponsorshipStatus);
       }
-      setFlowState("wallet_signature");
       const request = createWalletSendCallsRequest({
         account,
         paymasterUrl,
@@ -253,6 +264,9 @@ export function useGasExecution({
         sourceGasFee: current.route.sourceGasFee,
         sponsorshipRequired,
       });
+      setFlowState("simulating");
+      await simulateRouteCalls(request);
+      setFlowState("wallet_signature");
       const response = await provider.request(request);
       const sourceTxHash = getWalletTransactionHash(response);
       const walletCallId = sourceTxHash ? undefined : getWalletCallId(response);
@@ -398,7 +412,10 @@ export function useGasExecution({
         if (current?.step === "confirm") current = await confirmRoute(current);
         if (current?.step === "monitor") await monitorRoute(current);
       } catch (nextError) {
-        if (nextError instanceof WalletCallsTerminalError) {
+        if (
+          nextError instanceof WalletCallsTerminalError ||
+          (nextError instanceof RouteSimulationError && nextError.refreshQuote)
+        ) {
           updateCheckpoint(null);
         }
         setFlowState("failed");

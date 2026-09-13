@@ -84,6 +84,7 @@ export function ConfirmationDialog({
   };
   const processingLabel: Partial<Record<GasFlowState, string>> = {
     switching_network: "Switching source network",
+    simulating: "Checking transaction on-chain",
     wallet_signature: "Awaiting authorization",
     submitting: "Submitting source-chain transaction",
     deposit_pending: "Waiting for source-chain confirmation",

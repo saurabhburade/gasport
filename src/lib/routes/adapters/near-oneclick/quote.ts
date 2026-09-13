@@ -23,6 +23,10 @@ import {
   sameAddress,
 } from "./common.ts";
 
+const MAX_TOTAL_FEE_BPS = 500;
+// The public endpoint adds 25 bps before enforcing its combined fee cap.
+const PUBLIC_ONE_CLICK_FEE_RESERVE_BPS = 25;
+
 function assertAsset(asset: RouteQuoteRequest["sourceAsset"], label: string) {
   if (!isRecord(asset)) {
     adapterError("invalid_request", `A ${label} asset is required.`);
@@ -274,9 +278,12 @@ export async function requestNearQuote(
   signal?: AbortSignal,
 ) {
   const expectedRequest = buildQuoteRequest(routeRequest, dry);
-  const feeBps = platformFeeBpsFor(
-    routeRequest.sourceAsset.chainId,
-    routeRequest.sponsorshipRequired,
+  const feeBps = Math.min(
+    platformFeeBpsFor(
+      routeRequest.sourceAsset.chainId,
+      routeRequest.sponsorshipRequired,
+    ),
+    MAX_TOTAL_FEE_BPS - PUBLIC_ONE_CLICK_FEE_RESERVE_BPS,
   );
   if (feeBps > 0 && !config.feeRecipient) {
     return adapterError(

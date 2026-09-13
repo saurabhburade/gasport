@@ -13,7 +13,7 @@
   "intentsAssetId": "nep245:v2_1.omni.hot.tg:143_11111111111111111111",
   "explorerUrl": "https://monadscan.com",
   "publicRpcUrl": "https://rpc.monad.xyz",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 },
   "chainlinkUsdFeed": {
     "address": "0xBcD78f76005B7515837af6b50c7C52BCf73822fb",
     "heartbeatSeconds": 3600

@@ -12,5 +12,5 @@
   "trustWalletSlug": "aurora",
   "explorerUrl": "https://aurorascan.dev",
   "publicRpcUrl": "https://mainnet.aurora.dev",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 }
 }

@@ -10,17 +10,19 @@ test("charges 1% when the app sponsors source gas", () => {
   assert.equal(platformFeeBpsFor(8453, true), 100);
 });
 
-test("charges 5% when the wallet pays source gas", () => {
-  assert.equal(platformFeeBpsFor(10, false), 500);
+test("charges 4% when the wallet pays source gas", () => {
+  for (const chain of CHAIN_LIST) {
+    assert.equal(platformFeeBpsFor(chain.id, false), 400);
+  }
 });
 
 test("keeps the fee policy configurable by source chain", () => {
   assert.deepEqual(PLATFORM_FEE_CONFIG_BY_CHAIN_ID[1], {
-    selfFundedBps: 500,
+    selfFundedBps: 400,
     sponsoredBps: 100,
   });
   assert.deepEqual(PLATFORM_FEE_CONFIG_BY_CHAIN_ID[42161], {
-    selfFundedBps: 500,
+    selfFundedBps: 400,
     sponsoredBps: 100,
   });
   assert.deepEqual(

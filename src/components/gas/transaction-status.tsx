@@ -16,6 +16,7 @@ function stateDetails(flowState: GasFlowState) {
     flowState === "solver_executing" ||
     flowState === "deposit_pending" ||
     flowState === "submitting" ||
+    flowState === "simulating" ||
     flowState === "wallet_signature" ||
     flowState === "switching_network"
   ) {

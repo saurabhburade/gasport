@@ -4,7 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { feeRateLabel, formatTokenFee } from "./common";
+import { formatTokenFee } from "./common";
 import type { MarketQuote } from "./types";
 
 export function FeeBreakdownTooltip({ route }: { route: MarketQuote }) {
@@ -25,24 +25,17 @@ export function FeeBreakdownTooltip({ route }: { route: MarketQuote }) {
           Route by {route.providerLabel}
         </p>
         <div className="mt-3 space-y-1.5 border-t border-background/15 pt-2 font-mono tabular-nums">
-          {route.fees.map((fee) => {
-            const rate = feeRateLabel(fee.rateBps);
-            return (
-              <div
-                className="flex items-center justify-between gap-4"
-                key={`${fee.kind}-${fee.label}-${fee.amount}-${fee.token.symbol}`}
-              >
-                <span className="font-sans text-background/70">
-                  {fee.label}
-                  {rate ? ` (${rate})` : ""}
-                  {"\u00a0"}
-                </span>
-                <span className="whitespace-nowrap">
-                  {formatTokenFee(fee.amount)} {fee.token.symbol}
-                </span>
-              </div>
-            );
-          })}
+          {route.fees.map((fee) => (
+            <div
+              className="flex items-center justify-between gap-4"
+              key={`${fee.kind}-${fee.label}-${fee.amount}-${fee.token.symbol}`}
+            >
+              <span className="font-sans text-background/70">{fee.label}</span>
+              <span className="whitespace-nowrap">
+                {formatTokenFee(fee.amount)} {fee.token.symbol}
+              </span>
+            </div>
+          ))}
           <div className="flex items-center justify-between gap-4">
             <span className="font-sans text-background/70">
               {route.sourceGasSponsored

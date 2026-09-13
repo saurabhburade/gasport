@@ -12,12 +12,6 @@ export function marketQuoteExpiry(response: NormalizedRouteQuote) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export function feeRateLabel(rateBps?: number) {
-  if (rateBps === undefined || !Number.isFinite(rateBps)) return undefined;
-  const percent = rateBps / 100;
-  return `${percent < 0.01 ? percent.toFixed(4) : percent.toFixed(2)}%`;
-}
-
 export function routeQuoteRequest({
   account,
   amount,

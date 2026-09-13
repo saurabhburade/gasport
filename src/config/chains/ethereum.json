@@ -13,7 +13,7 @@
   "intentsAssetId": "nep141:eth.omft.near",
   "explorerUrl": "https://etherscan.io",
   "publicRpcUrl": "https://eth.drpc.org",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "fees": { "selfFundedBps": 400, "sponsoredBps": 100 },
   "chainlinkUsdFeed": {
     "address": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
     "heartbeatSeconds": 3600
