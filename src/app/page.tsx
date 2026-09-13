@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import { connection } from "next/server";
 import { type Address, isAddress } from "viem";
+import { AppProviders } from "@/components/app-providers";
 import { GasWorkspace } from "@/components/gas/gas-workspace";
 import { CHAIN_LIST } from "@/config/chains";
 import {
@@ -27,6 +29,7 @@ function validNearApiUrl(value: string | undefined) {
 
 export default async function Home() {
   await connection();
+  const cookie = (await headers()).get("cookie");
   const recipient = [
     process.env.SPONSORED_GAS_FEE_RECIPIENT,
     process.env.NEAR_INTENTS_FEE_RECIPIENT,
@@ -60,23 +63,25 @@ export default async function Home() {
     }),
   );
   return (
-    <GasWorkspace
-      sourceGasConfig={{
-        ...(recipient && isAddress(recipient)
-          ? { feeRecipient: recipient }
-          : {}),
-        ...(platformFeeRecipient && isAddress(platformFeeRecipient)
-          ? { platformFeeRecipient }
-          : {}),
-        sponsoredChainIds: CHAIN_LIST.filter((chain) =>
-          isAlchemySponsorshipConfigured(
-            getAlchemySponsorshipConfig(chain.id),
-            chain.id,
-          ),
-        ).map((chain) => chain.id),
-        bundlerUrls,
-      }}
-      nearClientConfig={nearClientConfig}
-    />
+    <AppProviders cookies={cookie}>
+      <GasWorkspace
+        sourceGasConfig={{
+          ...(recipient && isAddress(recipient)
+            ? { feeRecipient: recipient }
+            : {}),
+          ...(platformFeeRecipient && isAddress(platformFeeRecipient)
+            ? { platformFeeRecipient }
+            : {}),
+          sponsoredChainIds: CHAIN_LIST.filter((chain) =>
+            isAlchemySponsorshipConfigured(
+              getAlchemySponsorshipConfig(chain.id),
+              chain.id,
+            ),
+          ).map((chain) => chain.id),
+          bundlerUrls,
+        }}
+        nearClientConfig={nearClientConfig}
+      />
+    </AppProviders>
   );
 }
