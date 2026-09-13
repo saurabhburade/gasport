@@ -13,5 +13,9 @@
   "intentsAssetId": "nep245:v2_1.omni.hot.tg:43114_11111111111111111111",
   "explorerUrl": "https://snowtrace.io",
   "publicRpcUrl": "https://api.avax.network/ext/bc/C/rpc",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "chainlinkUsdFeed": {
+    "address": "0x0A77230d17318075983913bC2145DB16C7366156",
+    "heartbeatSeconds": 120
+  }
 }

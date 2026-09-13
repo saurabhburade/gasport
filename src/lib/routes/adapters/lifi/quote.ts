@@ -270,30 +270,18 @@ function parseLifiQuote(value: unknown): LifiQuote {
   };
 }
 
-function configuredPlatformFeeRecipient(): Address | undefined {
-  const candidates = [
-    ["PLATFORM_FEE_RECIPIENT", process.env.PLATFORM_FEE_RECIPIENT],
-    ["SPONSORED_GAS_FEE_RECIPIENT", process.env.SPONSORED_GAS_FEE_RECIPIENT],
-    ["NEAR_INTENTS_FEE_RECIPIENT", process.env.NEAR_INTENTS_FEE_RECIPIENT],
-  ] as const;
-  for (const [name, rawRecipient] of candidates) {
-    const recipient = rawRecipient?.trim();
-    if (!recipient) continue;
-    if (!isAddress(recipient)) {
-      throw invalidRequest(`${name} must be a valid EVM address.`);
-    }
-    return recipient;
-  }
-  return undefined;
-}
-
-function platformFeeFor(request: RouteQuoteRequest): LifiPlatformFee {
+function platformFeeFor(
+  request: RouteQuoteRequest,
+  recipient?: Address,
+): LifiPlatformFee {
   const grossAmount = BigInt(request.amount);
   const rateBps = platformFeeBpsFor(
     request.sourceAsset.chainId,
     request.sponsorshipRequired,
   );
-  const recipient = configuredPlatformFeeRecipient();
+  if (recipient && !isAddress(recipient)) {
+    throw invalidRequest("Platform fee recipient must be a valid EVM address.");
+  }
   if (!recipient) return { amount: 0n, providerAmount: grossAmount, rateBps };
 
   const amount =
@@ -450,13 +438,18 @@ function validateRequest(request: RouteQuoteRequest) {
   }
 }
 
-export async function getLifiQuoteWithRaw(request: RouteQuoteRequest) {
+export async function getLifiQuoteWithRaw(
+  request: RouteQuoteRequest,
+  recipient?: Address,
+  signal?: AbortSignal,
+) {
   validateRequest(request);
-  const platformFee = platformFeeFor(request);
+  const platformFee = platformFeeFor(request, recipient);
   const raw = parseLifiQuote(
     await fetchProviderJson(
       quoteUrl(request, platformFee.providerAmount),
       "quote",
+      signal,
     ),
   );
   return {

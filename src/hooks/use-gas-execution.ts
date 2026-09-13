@@ -11,8 +11,6 @@ import { appKitNetworks } from "@/config/appkit";
 import {
   isPreparedRoute,
   nearInputToRoute,
-  routeStatusResult,
-  settlementParams,
   sleep,
 } from "@/hooks/gas-execution/common";
 import {
@@ -40,6 +38,10 @@ import {
   WalletCallsTerminalError,
   type WalletRpcProvider,
 } from "@/lib/gas/wallet-calls";
+import { getLifiStatus } from "@/lib/routes/adapters/lifi/status";
+import { NearOneClickRouteAdapter } from "@/lib/routes/adapters/near-oneclick";
+import type { NearClientConfig } from "@/lib/routes/types";
+import { RouteAdapterError } from "@/lib/routes/types";
 import type { GasFlowState } from "@/types/gas";
 
 export { isPreparedRoute } from "@/hooks/gas-execution/common";
@@ -49,7 +51,11 @@ export type {
   RouteExecutionInput,
 } from "@/hooks/gas-execution/types";
 
-export function useGasExecution() {
+export function useGasExecution({
+  nearClientConfig,
+}: {
+  nearClientConfig: NearClientConfig;
+}) {
   const appKitAccount = useAppKitAccount({ namespace: "eip155" });
   const { walletProvider } = useAppKitProvider<WalletRpcProvider>("eip155");
   const { switchNetwork } = useAppKitNetwork();
@@ -64,6 +70,10 @@ export function useGasExecution() {
   const executionLock = useRef(false);
   const walletReady = Boolean(
     appKitAccount.isConnected && connectedAddress && walletProvider,
+  );
+  const nearAdapter = useMemo(
+    () => new NearOneClickRouteAdapter(nearClientConfig),
+    [nearClientConfig],
   );
 
   const updateCheckpoint = useCallback((next: ExecutionCheckpoint | null) => {
@@ -305,24 +315,38 @@ export function useGasExecution() {
       setFlowState("solver_executing");
       const deadline = Date.now() + SETTLEMENT_TIMEOUT_MS;
       while (Date.now() < deadline) {
-        const params = new URLSearchParams({
-          provider: current.route.provider,
-          sourceTxHash: current.sourceTxHash,
-        });
-        settlementParams(params, current.route.settlement);
-
-        let response: Response | undefined;
+        let statusResponse:
+          | Awaited<ReturnType<NearOneClickRouteAdapter["getStatus"]>>
+          | undefined;
         try {
-          response = await fetch(`/api/routes/status?${params}`, {
-            signal: AbortSignal.timeout(10_000),
-          });
-        } catch {
+          if (current.route.provider === "lifi") {
+            statusResponse = await getLifiStatus(
+              current.route.settlement,
+              current.sourceTxHash,
+              AbortSignal.timeout(10_000),
+            );
+          } else {
+            statusResponse = await nearAdapter.getStatus(
+              current.route.settlement,
+              current.sourceTxHash,
+              AbortSignal.timeout(10_000),
+            );
+          }
+        } catch (statusError) {
+          if (
+            statusError instanceof RouteAdapterError &&
+            (statusError.code === "invalid_request" ||
+              statusError.code === "unsupported")
+          ) {
+            throw statusError;
+          }
           // A temporary network failure is safe to retry because the source
           // transaction reference is already checkpointed in React memory.
         }
 
-        if (response?.ok) {
-          const status = routeStatusResult(await response.json());
+        if (statusResponse) {
+          const status = statusResponse;
+          if (status.kind === "failed") throw new Error(status.message);
           if (status.kind === "success") {
             const settlement = current.route.settlement;
             setResult({
@@ -350,11 +374,6 @@ export function useGasExecution() {
             setFlowState("completed");
             return;
           }
-        } else if (response && ![404, 502, 503].includes(response.status)) {
-          const body = (await response.json().catch(() => null)) as {
-            error?: string;
-          } | null;
-          throw new Error(body?.error ?? "Could not check the route status.");
         }
 
         if (Date.now() + POLL_INTERVAL_MS >= deadline) break;
@@ -364,7 +383,7 @@ export function useGasExecution() {
         "The route is still processing. Retry will only continue tracking it.",
       );
     },
-    [updateCheckpoint],
+    [nearAdapter, updateCheckpoint],
   );
 
   const run = useCallback(

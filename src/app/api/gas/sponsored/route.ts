@@ -8,6 +8,7 @@ import {
 } from "@/lib/gas/paymaster-proxy";
 
 const MAX_REQUEST_LENGTH = 128 * 1024;
+const UPSTREAM_TIMEOUT_MS = 10_000;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, ngrok-skip-browser-warning",
@@ -25,6 +26,15 @@ function rpcError(
   return Response.json(
     { jsonrpc: "2.0", id, error: { code, message } },
     { status, headers: CORS_HEADERS },
+  );
+}
+
+function hasOversizedRequestBody(request: Request) {
+  const contentLength = request.headers.get("content-length");
+  if (!contentLength) return false;
+  const parsedLength = Number(contentLength);
+  return (
+    Number.isSafeInteger(parsedLength) && parsedLength > MAX_REQUEST_LENGTH
   );
 }
 
@@ -67,10 +77,14 @@ export function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (hasOversizedRequestBody(request)) {
+    return rpcError(null, -32600, "Paymaster request is too large.", 413);
+  }
+
   let value: unknown;
   try {
     const rawBody = await request.text();
-    if (rawBody.length > MAX_REQUEST_LENGTH) {
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_REQUEST_LENGTH) {
       return rpcError(null, -32600, "Paymaster request is too large.", 413);
     }
     value = JSON.parse(rawBody);
@@ -123,6 +137,7 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       cache: "no-store",
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
     return new Response(await upstream.text(), {
       status: upstream.status,

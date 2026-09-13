@@ -4,6 +4,13 @@ export const ROUTE_PROVIDER_IDS = ["near-1click", "lifi"] as const;
 
 export type RouteProviderId = (typeof ROUTE_PROVIDER_IDS)[number];
 
+export type NearClientConfig = Readonly<{
+  apiUrl?: string;
+  feeRecipient?: Address;
+  managerPublicKey?: string;
+  referralId?: string;
+}>;
+
 export type RouteAsset = {
   address: Address;
   assetId: string;
@@ -95,11 +102,18 @@ export type RouteExecutionStatus =
 
 export interface RouteAdapter {
   readonly id: RouteProviderId;
-  getQuote(request: RouteQuoteRequest): Promise<NormalizedRouteQuote>;
-  prepare(request: RouteQuoteRequest): Promise<PreparedRoute>;
+  getQuote(
+    request: RouteQuoteRequest,
+    signal?: AbortSignal,
+  ): Promise<NormalizedRouteQuote>;
+  prepare(
+    request: RouteQuoteRequest,
+    signal?: AbortSignal,
+  ): Promise<PreparedRoute>;
   getStatus(
     settlement: RouteSettlement,
     sourceTxHash: Hex,
+    signal?: AbortSignal,
   ): Promise<RouteExecutionStatus>;
 }
 

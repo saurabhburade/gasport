@@ -6,7 +6,11 @@
     "decimals": 6,
     "symbol": "USDC",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/monad/assets/0x754704Bc059F8C67012fEd69BC8A327a5aafb603/logo.png",
-    "coingeckoId": "usd-coin"
+    "coingeckoId": "usd-coin",
+    "chainlinkUsdFeed": {
+      "address": "0xf5F15f188AbCB0d165D1Edb7f37F7d6fA2fCebec",
+      "heartbeatSeconds": 3600
+    }
   },
   {
     "assetId": "nep245:v2_1.omni.hot.tg:143_4EJiJxSALvGoTZbnc8K7Ft9533et",
@@ -15,6 +19,10 @@
     "decimals": 6,
     "symbol": "USDT0",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/monad/assets/0xe7cd86e13AC4309349F30B3435a9d337750fC82D/logo.png",
-    "coingeckoId": "usdt0"
+    "coingeckoId": "usdt0",
+    "chainlinkUsdFeed": {
+      "address": "0x731EFd09D87128787787947cC21BE835620E765e",
+      "heartbeatSeconds": 3600
+    }
   }
 ]

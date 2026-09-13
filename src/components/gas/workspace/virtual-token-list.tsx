@@ -58,7 +58,7 @@ export function VirtualTokenList({
   return (
     <div
       aria-label="Available source tokens"
-      className="h-[min(390px,calc(100vh-13rem))] min-h-48 overflow-y-auto pt-2"
+      className="min-h-0 flex-1 overscroll-contain overflow-y-auto pt-2 sm:h-[min(390px,calc(100dvh-13rem))] sm:min-h-48 sm:flex-none"
       onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
       ref={scrollContainerRef}
       role="listbox"

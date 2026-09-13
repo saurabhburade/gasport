@@ -36,6 +36,10 @@ import type { RouteExecutionInput } from "@/hooks/use-gas-execution";
 import { useSourceTokens } from "@/hooks/use-source-tokens";
 import { normalizeAmountInput } from "@/lib/amount-input";
 import {
+  type ClientSourceGasConfig,
+  estimateSourceGasInBrowser,
+} from "@/lib/gas/client-source-gas";
+import {
   getExecutionRetryAction,
   isConfirmationDialogOpen,
   resolveConfirmationFlowState,
@@ -43,12 +47,20 @@ import {
   shouldResetExecutionOnDialogClose,
   shouldResetExecutionOnDraftChange,
 } from "@/lib/gas/confirmation-dialog-state";
-import type { PreparedRoute } from "@/lib/routes/types";
+import { LifiRouteAdapter } from "@/lib/routes/adapters/lifi";
+import { NearOneClickRouteAdapter } from "@/lib/routes/adapters/near-oneclick";
+import type { NearClientConfig, PreparedRoute } from "@/lib/routes/types";
 import { tokenKey } from "@/lib/tokens/source-catalog";
 import type { GasFlowState } from "@/types/gas";
 import type { Token } from "@/types/tokens";
 
-export function GasWorkspace() {
+export function GasWorkspace({
+  nearClientConfig,
+  sourceGasConfig,
+}: {
+  nearClientConfig: NearClientConfig;
+  sourceGasConfig: ClientSourceGasConfig;
+}) {
   const { open: openAppKit } = useAppKit();
   const appKitAccount = useAppKitAccount();
   const reduceMotion = useReducedMotion();
@@ -80,6 +92,7 @@ export function GasWorkspace() {
   >("get-gas");
   const execution = useSyncedGasExecution({
     connected,
+    nearClientConfig,
     setError,
     setState,
     state,
@@ -144,6 +157,8 @@ export function GasWorkspace() {
     quoteWalletAddress,
     recipientAddress,
     setWorkspaceError: setError,
+    nearClientConfig,
+    sourceGasConfig,
     token,
   });
 
@@ -248,27 +263,54 @@ export function GasWorkspace() {
     preparingDepositRef.current = true;
     setError(null);
     setIsPreparingDeposit(true);
+    let staleQuote = false;
     try {
-      const response = await fetch("/api/routes/prepare", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...routeQuoteRequest({
-            account: walletAddress,
-            amount: quote.inputAmount,
-            destination,
-            recipient: recipientAddress,
-            sponsorshipRequired: sourceGasEstimate.sponsorshipRequired,
-            token,
-          }),
-          provider: liveQuote?.provider,
-        }),
+      const grossAmount =
+        quote.inputAmount + BigInt(sourceGasEstimate.feeAmount);
+      const freshGas = await estimateSourceGasInBrowser({
+        account: walletAddress,
+        amount: grossAmount,
+        chain: sourceChain,
+        config: sourceGasConfig,
+        signal: AbortSignal.timeout(20_000),
+        token,
       });
-      const body = (await response.json()) as PreparedRoute & {
-        error?: string;
-      };
-      if (!response.ok) {
-        throw new Error(body.error ?? "Could not prepare the selected route.");
+      if (!freshGas.executionAvailable) {
+        throw new Error(
+          freshGas.executionError ?? "Source gas is unavailable.",
+        );
+      }
+      if (
+        freshGas.sponsorshipRequired !==
+          sourceGasEstimate.sponsorshipRequired ||
+        freshGas.feeAmount !== sourceGasEstimate.feeAmount ||
+        freshGas.feeRecipient.toLowerCase() !==
+          sourceGasEstimate.feeRecipient.toLowerCase()
+      ) {
+        staleQuote = true;
+        refreshQuote();
+        throw new Error(
+          "Source gas changed. Refresh the quote before confirming.",
+        );
+      }
+      const quoteRequest = routeQuoteRequest({
+        account: walletAddress,
+        amount: quote.inputAmount,
+        destination,
+        recipient: recipientAddress,
+        sponsorshipRequired: sourceGasEstimate.sponsorshipRequired,
+        token,
+      });
+      let body: PreparedRoute;
+      if (liveQuote?.provider === "lifi") {
+        body = await new LifiRouteAdapter(
+          sourceGasConfig.platformFeeRecipient,
+        ).prepare(quoteRequest, AbortSignal.timeout(20_000));
+      } else {
+        body = await new NearOneClickRouteAdapter(nearClientConfig).prepare(
+          quoteRequest,
+          AbortSignal.timeout(20_000),
+        );
       }
       if (
         !liveQuote ||
@@ -310,7 +352,8 @@ export function GasWorkspace() {
           ? requestError.message
           : "Could not prepare the selected route.",
       );
-      setState("confirming");
+      setState(staleQuote ? "quoted" : "confirming");
+      if (staleQuote) setIsExecutionDialogDismissed(true);
     } finally {
       setIsPreparingDeposit(false);
     }

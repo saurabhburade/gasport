@@ -5,7 +5,11 @@
     "contractAddress": "0x74b7f16337b8972027f6196a17a631ac6de26d22",
     "decimals": 6,
     "symbol": "USDC",
-    "coingeckoId": "usd-coin"
+    "coingeckoId": "usd-coin",
+    "chainlinkUsdFeed": {
+      "address": "0xB8a08c178D96C315FbFB5661ABD208477391BC40",
+      "heartbeatSeconds": 86400
+    }
   },
   {
     "assetId": "nep245:v2_1.omni.hot.tg:196_2fezDCvVYRsG8wrK6deJ2VRPiAS1",
@@ -13,6 +17,10 @@
     "contractAddress": "0x779ded0c9e1022225f8e0630b35a9b54be713736",
     "decimals": 6,
     "symbol": "USDT0",
-    "coingeckoId": "usdt0"
+    "coingeckoId": "usdt0",
+    "chainlinkUsdFeed": {
+      "address": "0x673b428Fd1df93a6F77fA7ea1F8eeD8A4Ff36b9f",
+      "heartbeatSeconds": 86400
+    }
   }
 ]

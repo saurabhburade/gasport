@@ -54,16 +54,16 @@ const signedQuote = quoteResponseSchema.parse({
   },
 });
 
-test("verifies an official 1Click signed quote fixture", () => {
+test("verifies an official 1Click signed quote fixture", async () => {
   assert.equal(
-    verifyNearQuoteSignature(signedQuote, stagingManagerPublicKey),
+    await verifyNearQuoteSignature(signedQuote, stagingManagerPublicKey),
     true,
   );
 });
 
-test("rejects a quote whose deposit address was changed", () => {
+test("rejects a quote whose deposit address was changed", async () => {
   assert.equal(
-    verifyNearQuoteSignature(
+    await verifyNearQuoteSignature(
       {
         ...signedQuote,
         quote: {

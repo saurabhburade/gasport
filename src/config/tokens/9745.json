@@ -6,6 +6,10 @@
     "decimals": 6,
     "symbol": "USDT0",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/plasma/assets/0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb/logo.png",
-    "coingeckoId": "usdt0"
+    "coingeckoId": "usdt0",
+    "chainlinkUsdFeed": {
+      "address": "0x3205B49b3C8c5D593589e1e70567993f72C5F845",
+      "heartbeatSeconds": 86400
+    }
   }
 ]

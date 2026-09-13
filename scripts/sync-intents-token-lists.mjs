@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { getAddress } from "viem";
 
@@ -98,6 +98,21 @@ if (!Array.isArray(catalog)) {
 
 await mkdir(outputDirectory, { recursive: true });
 for (const [blockchain, chain] of Object.entries(chainLists)) {
+  const outputPath = resolve(outputDirectory, `${chain.chainId}.json`);
+  const previousTokens = await readFile(outputPath, "utf8")
+    .then((value) => JSON.parse(value))
+    .catch((error) => {
+      if (error?.code === "ENOENT") return [];
+      throw error;
+    });
+  const previousFeeds = new Map(
+    previousTokens
+      .filter((item) => item.chainlinkUsdFeed)
+      .map((item) => [
+        `${item.contractAddress.toLowerCase()}:${item.symbol}`,
+        item.chainlinkUsdFeed,
+      ]),
+  );
   const tokens = catalog
     .filter(
       (item) =>
@@ -134,6 +149,13 @@ for (const [blockchain, chain] of Object.entries(chainLists)) {
         ...(typeof coingeckoId === "string" && coingeckoId
           ? { coingeckoId }
           : {}),
+        ...(previousFeeds.get(`${contractAddress.toLowerCase()}:${symbol}`)
+          ? {
+              chainlinkUsdFeed: previousFeeds.get(
+                `${contractAddress.toLowerCase()}:${symbol}`,
+              ),
+            }
+          : {}),
       }),
     )
     .sort(
@@ -142,7 +164,7 @@ for (const [blockchain, chain] of Object.entries(chainLists)) {
         left.contractAddress.localeCompare(right.contractAddress),
     );
   await writeFile(
-    resolve(outputDirectory, `${chain.chainId}.json`),
+    outputPath,
     `${JSON.stringify(tokens, null, 2)}\n`,
   );
 }

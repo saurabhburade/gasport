@@ -117,7 +117,7 @@ export function ConfirmationDialog({
                     ? `${route.input} ${route.inputSymbol}`
                     : quote
                       ? `${amount} ${quote.inputToken.symbol}`
-                      : "—"
+                      : "-"
                 }
               />
               <NetworkDetail chain={sourceChain} label="From network" />
@@ -127,7 +127,7 @@ export function ConfirmationDialog({
               <QuoteDetail
                 label="Minimum received"
                 value={
-                  route ? `${route.minimumReceived} ${destination.symbol}` : "—"
+                  route ? `${route.minimumReceived} ${destination.symbol}` : "-"
                 }
               />
               <NetworkDetail chain={destination} label="To network" />
@@ -138,7 +138,7 @@ export function ConfirmationDialog({
                   {route && <FeeBreakdownTooltip route={route} />}
                 </span>
                 <span className="text-right text-xs tabular-nums">
-                  {route?.networkFee ?? "—"}
+                  {route?.networkFee ?? "-"}
                 </span>
               </div>
               <QuoteDetail

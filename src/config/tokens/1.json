@@ -6,7 +6,11 @@
     "decimals": 18,
     "symbol": "AAVE",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9/logo.png",
-    "coingeckoId": "aave"
+    "coingeckoId": "aave",
+    "chainlinkUsdFeed": {
+      "address": "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9",
+      "heartbeatSeconds": 3600
+    }
   },
   {
     "assetId": "nep141:eth-0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf.omft.near",
@@ -15,7 +19,11 @@
     "decimals": 8,
     "symbol": "cbBTC",
     "logoURI": "https://coin-images.coingecko.com/coins/images/40143/large/cbbtc.webp?1726136727",
-    "coingeckoId": "coinbase-wrapped-btc"
+    "coingeckoId": "coinbase-wrapped-btc",
+    "chainlinkUsdFeed": {
+      "address": "0x2665701293fCbEB223D11A08D826563EDcCE423A",
+      "heartbeatSeconds": 86400
+    }
   },
   {
     "assetId": "nep141:eth-0x6b175474e89094c44da98b954eedeac495271d0f.omft.near",
@@ -24,7 +32,11 @@
     "decimals": 18,
     "symbol": "DAI",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png",
-    "coingeckoId": "dai"
+    "coingeckoId": "dai",
+    "chainlinkUsdFeed": {
+      "address": "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
+      "heartbeatSeconds": 3600
+    }
   },
   {
     "assetId": "nep141:eth-0x514910771af9ca656af840dff83e8264ecf986ca.omft.near",
@@ -33,7 +45,11 @@
     "decimals": 18,
     "symbol": "LINK",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x514910771AF9Ca656af840dff83E8264EcF986CA/logo.png",
-    "coingeckoId": "chainlink"
+    "coingeckoId": "chainlink",
+    "chainlinkUsdFeed": {
+      "address": "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c",
+      "heartbeatSeconds": 3600
+    }
   },
   {
     "assetId": "nep141:eth-0x1f9840a85d5af5bf1d1762f925bdaddc4201f984.omft.near",
@@ -42,7 +58,11 @@
     "decimals": 18,
     "symbol": "UNI",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984/logo.png",
-    "coingeckoId": "uniswap"
+    "coingeckoId": "uniswap",
+    "chainlinkUsdFeed": {
+      "address": "0x553303d460EE0afB37EdFf9bE42922D8FF63220e",
+      "heartbeatSeconds": 3600
+    }
   },
   {
     "assetId": "nep141:eth-0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d.omft.near",
@@ -51,7 +71,11 @@
     "decimals": 18,
     "symbol": "USD1",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d/logo.png",
-    "coingeckoId": "usd1-wlfi"
+    "coingeckoId": "usd1-wlfi",
+    "chainlinkUsdFeed": {
+      "address": "0xF0d9bb015Cd7BfAb877B7156146dc09Bf461370d",
+      "heartbeatSeconds": 86400
+    }
   },
   {
     "assetId": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
@@ -60,7 +84,11 @@
     "decimals": 6,
     "symbol": "USDC",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
-    "coingeckoId": "usd-coin"
+    "coingeckoId": "usd-coin",
+    "chainlinkUsdFeed": {
+      "address": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+      "heartbeatSeconds": 82800
+    }
   },
   {
     "assetId": "nep141:eth-0xfa2b947eec368f42195f24f36d2af29f7c24cec2.omft.near",
@@ -69,7 +97,11 @@
     "decimals": 18,
     "symbol": "USDf",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xFa2B947eEc368f42195f24F36d2aF29f7c24CeC2/logo.png",
-    "coingeckoId": "falcon-finance"
+    "coingeckoId": "falcon-finance",
+    "chainlinkUsdFeed": {
+      "address": "0xb177857a1799aA5F7fEb5799Fdf12CbE8fdF78B1",
+      "heartbeatSeconds": 86400
+    }
   },
   {
     "assetId": "nep141:eth-0xdac17f958d2ee523a2206206994597c13d831ec7.omft.near",
@@ -78,7 +110,11 @@
     "decimals": 6,
     "symbol": "USDT",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
-    "coingeckoId": "tether"
+    "coingeckoId": "tether",
+    "chainlinkUsdFeed": {
+      "address": "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
+      "heartbeatSeconds": 86400
+    }
   },
   {
     "assetId": "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
@@ -96,6 +132,10 @@
     "decimals": 18,
     "symbol": "WETH",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
-    "coingeckoId": "ethereum"
+    "coingeckoId": "ethereum",
+    "chainlinkUsdFeed": {
+      "address": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+      "heartbeatSeconds": 3600
+    }
   }
 ]

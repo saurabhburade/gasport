@@ -1,4 +1,4 @@
-import type { NormalizedRouteQuote, RouteFeeLine } from "@/lib/routes/types";
+import type { RouteFeeLine } from "@/lib/routes/types";
 
 export type MarketQuote = {
   fees: RouteFeeLine[];
@@ -11,11 +11,6 @@ export type MarketQuote = {
   sourceGasFeeToken: string;
   sourceGasSponsored: boolean;
   executionDurationSeconds?: number;
-};
-
-export type RouteQuoteApiResponse = {
-  error?: string;
-  selected?: NormalizedRouteQuote;
 };
 
 export type InlineAlert = {

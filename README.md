@@ -18,7 +18,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Demo mode is enabled in `.env.example`. Add a Reown project ID to test wallet connections. Set `NEXT_PUBLIC_ENABLE_DEMO_MODE=false` only when the server-side provider and sponsorship variables are ready.
+Demo mode is enabled in `.env.example`. Add a Reown project ID to test wallet connections. Set `NEXT_PUBLIC_ENABLE_DEMO_MODE=false` when wallet access, public route providers, and Alchemy sponsorship are configured.
 
 Local sponsored calls need HTTPS. Start the tunnel in another terminal and copy its URL into `NEXT_PUBLIC_PAYMASTER_PROXY_URL`:
 
@@ -41,21 +41,23 @@ Copy `.env.example` to `.env.local`. Keep server variables out of client code an
 | `NEXT_PUBLIC_ENABLE_DEMO_MODE` | Set to `false` to allow live submission. Defaults to demo mode. |
 | `NEXT_PUBLIC_PAYMASTER_PROXY_URL` | HTTPS proxy for sponsored calls during local development. |
 
-### Server
+### Public route settings
 
 | Variable | Use |
 | --- | --- |
-| `SIWX_SESSION_SECRET` | Stable private key for wallet-connection terms authentication cookies. Required in production unless `NEXTAUTH_SECRET` is set. |
-| `NEAR_INTENTS_API_KEY` | Authenticated 1Click quotes, deposits, and transaction history. |
-| `NEAR_INTENTS_API_URL` | Optional 1Click API override. |
-| `NEAR_INTENTS_EXPLORER_API_URL` | Optional explorer API override. |
+| `NEAR_INTENTS_API_URL` | Optional public 1Click API override. |
 | `NEAR_INTENTS_MANAGER_PUBLIC_KEY` | Optional override for quote-signature verification. |
 | `NEAR_INTENTS_REFERRER_ID` | Optional 1Click referral ID. |
-| `NEAR_INTENTS_FEE_BPS` | App fee in basis points, from `0` to `500`. |
-| `NEAR_INTENTS_FEE_RECIPIENT` | Recipient required when the 1Click app fee is enabled. |
-| `LIFI_API_KEY` | Optional LI.FI API key for higher rate limits. Validate it with LI.FI's `/v1/keys/test`; invalid keys fall back to the public rate limit. |
+| `NEAR_INTENTS_FEE_RECIPIENT` | Recipient for the 1Click app fee; rates come from chain configuration. |
 | `PLATFORM_FEE_RECIPIENT` | Recipient for the LI.FI platform fee. |
 | `SPONSORED_GAS_FEE_RECIPIENT` | Recipient for recovered source-gas costs. |
+
+These values are passed to the browser. Public 1Click requests do not use a JWT and incur [NEAR's unauthenticated API fee](https://docs.near-intents.org/integration/distribution-channels/1click-api/authentication). Client-side fee instructions can be altered by a user; collecting an enforceable app fee requires a server-controlled or onchain mechanism.
+
+### Server-only sponsorship
+
+| Variable | Use |
+| --- | --- |
 | `ALCHEMY_API_KEY` | Alchemy Gas Manager API key. |
 | `ALCHEMY_POLICY_ID` | Shared Alchemy policy fallback. |
 | `ALCHEMY_POLICY_ID_<CHAIN>` | Chain-specific policy. Supported suffixes are `ETHEREUM`, `BASE`, `ARBITRUM`, `OPTIMISM`, and `MONAD`. |
@@ -67,11 +69,11 @@ Copy `.env.example` to `.env.local`. Keep server variables out of client code an
 - `src/hooks/` owns browser-side quote and execution state.
 - `src/lib/routes/` defines the common route interface. The `near-oneclick` and `lifi` adapters normalize quotes, prepared calls, fees, and settlement status.
 - `src/lib/gas/` estimates source gas, chooses the execution strategy, and builds wallet calls.
-- `src/lib/intents/` handles 1Click requests, schemas, authentication, and quote-signature checks.
+- `src/lib/intents/` handles public 1Click requests, schemas, and quote-signature checks.
 - `src/config/` contains chain, token, wallet, and fee configuration.
 - `src/types/` contains shared application types.
 
-API routes validate external data with Zod before returning it to the browser. Token amounts stay as integers or decimal strings until display. Wallets sign and submit transactions; the app does not handle private keys.
+LI.FI and NEAR 1Click quotes and transfer status are fetched directly from their public APIs in the browser. The only app API endpoint proxies Alchemy paymaster requests so its key and policy stay on the server. Token amounts stay as integers or decimal strings until display. Wallets sign and submit transactions; the app does not handle private keys.
 
 ![Gasport transfer flow from USDC on Base to ETH on Arbitrum via NEAR Intents or LI.FI](docs/images/gasport-transfer-flow.png)
 

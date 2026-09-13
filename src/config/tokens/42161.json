@@ -6,7 +6,11 @@
     "decimals": 6,
     "symbol": "USDC",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/assets/0xaf88d065e77c8cC2239327C5EDb3A432268e5831/logo.png",
-    "coingeckoId": "usd-coin"
+    "coingeckoId": "usd-coin",
+    "chainlinkUsdFeed": {
+      "address": "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
+      "heartbeatSeconds": 255
+    }
   },
   {
     "assetId": "nep141:arb-0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9.omft.near",
@@ -24,6 +28,10 @@
     "decimals": 18,
     "symbol": "WETH",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/assets/0x82aF49447D8a07e3bd95BD0d56f35241523fBab1/logo.png",
-    "coingeckoId": "ethereum"
+    "coingeckoId": "ethereum",
+    "chainlinkUsdFeed": {
+      "address": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+      "heartbeatSeconds": 1755
+    }
   }
 ]

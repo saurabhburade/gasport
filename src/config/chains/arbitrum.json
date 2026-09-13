@@ -13,5 +13,9 @@
   "intentsAssetId": "nep141:arb.omft.near",
   "explorerUrl": "https://arbiscan.io",
   "publicRpcUrl": "https://arbitrum.drpc.org",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "chainlinkUsdFeed": {
+    "address": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+    "heartbeatSeconds": 1755
+  }
 }

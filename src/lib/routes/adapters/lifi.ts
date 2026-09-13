@@ -1,4 +1,4 @@
-import { encodeFunctionData, type Hex, numberToHex } from "viem";
+import { type Address, encodeFunctionData, type Hex, numberToHex } from "viem";
 import type {
   NormalizedRouteQuote,
   PreparedRoute,
@@ -15,13 +15,29 @@ import { getLifiStatus } from "./lifi/status.ts";
 
 export class LifiRouteAdapter implements RouteAdapter {
   readonly id = "lifi" as const;
+  private readonly feeRecipient?: Address;
 
-  async getQuote(request: RouteQuoteRequest): Promise<NormalizedRouteQuote> {
-    return (await getLifiQuoteWithRaw(request)).quote;
+  constructor(feeRecipient?: Address) {
+    this.feeRecipient = feeRecipient;
   }
 
-  async prepare(request: RouteQuoteRequest): Promise<PreparedRoute> {
-    const { platformFee, raw, quote } = await getLifiQuoteWithRaw(request);
+  async getQuote(
+    request: RouteQuoteRequest,
+    signal?: AbortSignal,
+  ): Promise<NormalizedRouteQuote> {
+    return (await getLifiQuoteWithRaw(request, this.feeRecipient, signal))
+      .quote;
+  }
+
+  async prepare(
+    request: RouteQuoteRequest,
+    signal?: AbortSignal,
+  ): Promise<PreparedRoute> {
+    const { platformFee, raw, quote } = await getLifiQuoteWithRaw(
+      request,
+      this.feeRecipient,
+      signal,
+    );
     const transactionRequest = raw.transactionRequest;
     if (transactionRequest.chainId !== request.sourceAsset.chainId) {
       throw providerError("LI.FI returned a transaction for the wrong chain.");

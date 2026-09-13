@@ -1,5 +1,5 @@
 import { isAddress } from "viem";
-import type { Token } from "@/types/tokens";
+import type { ChainlinkUsdFeed, Token } from "@/types/tokens";
 import { CHAIN_LIST } from "../../config/chains.ts";
 
 export const chainIdByBlockchain: Readonly<Record<string, number>> =
@@ -26,7 +26,28 @@ export type IntentsTokenCatalogItem = {
   logoURI?: unknown;
   name?: unknown;
   symbol?: unknown;
+  chainlinkUsdFeed?: unknown;
 };
+
+function parseChainlinkUsdFeed(value: unknown): ChainlinkUsdFeed | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  if (!("address" in value) || !("heartbeatSeconds" in value)) {
+    return undefined;
+  }
+  if (
+    typeof value.address !== "string" ||
+    !isAddress(value.address) ||
+    typeof value.heartbeatSeconds !== "number" ||
+    !Number.isInteger(value.heartbeatSeconds) ||
+    value.heartbeatSeconds <= 0
+  ) {
+    return undefined;
+  }
+  return {
+    address: value.address,
+    heartbeatSeconds: value.heartbeatSeconds,
+  };
+}
 
 export type TokenListMetadataItem = {
   address?: unknown;
@@ -118,6 +139,7 @@ export function sourceTokensFromCatalog(
     const chainId = chainIdByBlockchain[item.blockchain.toLowerCase()];
     const symbol = item.symbol.trim();
     if (!chainId || !symbol || !item.assetId) continue;
+    const chainlinkUsdFeed = parseChainlinkUsdFeed(item.chainlinkUsdFeed);
 
     const token: Token = {
       address: item.contractAddress,
@@ -132,6 +154,7 @@ export function sourceTokensFromCatalog(
       decimals: item.decimals,
       chainId,
       intentsAssetId: item.assetId,
+      ...(chainlinkUsdFeed ? { chainlinkUsdFeed } : {}),
     };
     tokens.set(tokenKey(token), token);
   }

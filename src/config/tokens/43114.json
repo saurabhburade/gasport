@@ -6,7 +6,11 @@
     "decimals": 6,
     "symbol": "USDC",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/avalanchec/assets/0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E/logo.png",
-    "coingeckoId": "usd-coin"
+    "coingeckoId": "usd-coin",
+    "chainlinkUsdFeed": {
+      "address": "0xF096872672F44d6EBA71458D74fe67F9a77a23B9",
+      "heartbeatSeconds": 86400
+    }
   },
   {
     "assetId": "nep245:v2_1.omni.hot.tg:43114_372BeH7ENZieCaabwkbWkBiTTgXp",
@@ -15,6 +19,10 @@
     "decimals": 6,
     "symbol": "USDT",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/avalanchec/assets/0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7/logo.png",
-    "coingeckoId": "tether"
+    "coingeckoId": "tether",
+    "chainlinkUsdFeed": {
+      "address": "0xEBE676ee90Fe1112671f19b6B7459bC678B67e8a",
+      "heartbeatSeconds": 86400
+    }
   }
 ]

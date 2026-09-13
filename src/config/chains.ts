@@ -1,3 +1,4 @@
+import type { ChainlinkUsdFeed } from "../types/tokens.ts";
 import adi from "./chains/adi.json" with { type: "json" };
 import arbitrum from "./chains/arbitrum.json" with { type: "json" };
 import aurora from "./chains/aurora.json" with { type: "json" };
@@ -28,6 +29,7 @@ export type DestinationChain = Readonly<{
   trustWalletSlug?: string;
   /** Undefined when 1Click lists the chain but not a quotable native asset. */
   intentsAssetId?: string;
+  chainlinkUsdFeed?: ChainlinkUsdFeed;
   explorerUrl: string;
   publicRpcUrl: string;
   fees: Readonly<{

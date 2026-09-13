@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AlchemyLogo, LifiLogo, NearIntentsLogo } from "@/assets/partner-logos";
+import { PageTransition } from "@/components/motion/page-transition";
 
 type DashboardShellProps = {
   actions: ReactNode;
@@ -44,7 +45,7 @@ export function DashboardShell({
       </header>
 
       <div className="mx-auto flex w-full max-w-[1540px] flex-1 px-4 sm:px-8 lg:px-12">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </div>
 
       <footer className="border-y border-border/60">
@@ -63,6 +64,14 @@ export function DashboardShell({
             >
               Terms of Use
             </Link>
+            <a
+              className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
+              href="https://x.com/saurabh_evm"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Built by saurabh_evm
+            </a>
           </div>
           <div className="flex items-center gap-3">
             <span>Powered by</span>

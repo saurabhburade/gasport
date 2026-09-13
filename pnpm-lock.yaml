@@ -20,6 +20,9 @@ importers:
       '@reown/appkit-adapter-wagmi':
         specifier: 1.8.23
         version: 1.8.23(4e97b84eb22d945d1c1e6f31ccdbbee7)
+      '@reown/appkit-controllers':
+        specifier: 1.8.23
+        version: 1.8.23(@types/react@19.3.0)(react@19.3.0)(typescript@5.9.3)(zod@4.6.1)
       '@tanstack/react-query':
         specifier: 5.102.8
         version: 5.102.8(react@19.3.0)

@@ -12,5 +12,9 @@
   "intentsAssetId": "nep245:v2_1.omni.hot.tg:196_11111111111111111111",
   "explorerUrl": "https://www.oklink.com/xlayer",
   "publicRpcUrl": "https://xlayerrpc.okx.com",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "chainlinkUsdFeed": {
+    "address": "0x4Ff345b18a2bF894F8627F41501FBf30d5C5e7BE",
+    "heartbeatSeconds": 86400
+  }
 }

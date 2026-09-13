@@ -69,7 +69,7 @@ export function formatReceive(value: string) {
 }
 
 export function formatBalance(value?: string) {
-  if (!value) return "—";
+  if (!value) return "-";
   const [whole, fractional = ""] = value.split(".");
   const compactFraction = fractional.slice(0, 6).replace(/0+$/, "");
   return compactFraction ? `${whole}.${compactFraction}` : whole;
@@ -81,7 +81,7 @@ export function formatAddress(address: string) {
 }
 
 export function formatExecutionDuration(seconds?: number) {
-  if (seconds === undefined || !Number.isFinite(seconds)) return "—";
+  if (seconds === undefined || !Number.isFinite(seconds)) return "-";
   if (seconds < 60) return `~${Math.ceil(seconds)} sec`;
 
   const minutes = Math.floor(seconds / 60);
@@ -93,7 +93,7 @@ export function formatExecutionDuration(seconds?: number) {
 
 export function formatUsd(value: string) {
   const amount = Number(value);
-  if (!Number.isFinite(amount)) return "—";
+  if (!Number.isFinite(amount)) return "-";
   if (amount > 0 && amount < 0.0001) return "<$0.0001";
   return new Intl.NumberFormat(undefined, {
     style: "currency",
@@ -106,7 +106,7 @@ export function formatUsd(value: string) {
 
 export function formatTokenFee(value: number | string) {
   const amount = Number(value);
-  if (!Number.isFinite(amount)) return "—";
+  if (!Number.isFinite(amount)) return "-";
   if (amount > 0 && amount < 0.0001) return "<0.0001";
   return new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 4,

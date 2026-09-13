@@ -112,6 +112,28 @@
   background: var(--foreground);
   color: var(--background);
 }
+/* Match AppKit's wallet controls to Gasport's color, type, and rounded shapes. */
+html:root {
+  --apkt-tokens-theme-backgroundPrimary: var(--background);
+  --apkt-tokens-core-backgroundAccentPrimary-base: var(--primary);
+  --apkt-tokens-core-foregroundAccent020: color-mix(
+    in srgb,
+    var(--primary) 20%,
+    transparent
+  );
+  --apkt-tokens-core-foregroundAccent040: color-mix(
+    in srgb,
+    var(--primary) 40%,
+    transparent
+  );
+  --apkt-fontFamily-mono: var(--font-inter), Arial, Helvetica, sans-serif;
+  --apkt-fontWeight-regular: 600;
+  --apkt-fontWeight-medium: 600;
+  --apkt-borderRadius-1: 10px;
+  --apkt-borderRadius-2: 15px;
+  --apkt-borderRadius-3: 24px;
+  --apkt-borderRadius-4: 28px;
+}
 [data-slot="tooltip-content"]::selection,
 [data-slot="tooltip-content"] *::selection {
   background: color-mix(in oklab, var(--background) 25%, transparent);

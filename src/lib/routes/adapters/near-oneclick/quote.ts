@@ -1,3 +1,5 @@
+import { isAddress } from "viem";
+import { requestNearOneClick } from "../../../intents/browser-request.ts";
 import { getQuoteFeeBreakdown } from "../../../intents/quote-fees.ts";
 import {
   type MvpQuoteRequest,
@@ -9,6 +11,7 @@ import {
 import { verifyNearQuoteSignature } from "../../../intents/signature.ts";
 import { platformFeeBpsFor } from "../../fee-policy.ts";
 import type {
+  NearClientConfig,
   NormalizedRouteQuote,
   RouteFeeLine,
   RouteQuoteRequest,
@@ -97,9 +100,16 @@ function buildQuoteRequest(
 function assertQuoteMatchesRequest(
   response: NearQuoteResponse,
   request: MvpQuoteRequest,
+  configured: QuoteRequest,
   dry: boolean,
 ) {
   const returned = response.quoteRequest;
+  const returnedAppFees = returned.appFees ?? [];
+  const configuredAppFees = configured.appFees ?? [];
+  const appFeesMatch = matchesConfiguredAppFees(
+    returnedAppFees,
+    configuredAppFees,
+  );
   const matches =
     returned.dry === dry &&
     returned.swapType === "EXACT_INPUT" &&
@@ -112,6 +122,8 @@ function assertQuoteMatchesRequest(
     returned.recipientType === "DESTINATION_CHAIN" &&
     returned.deadline === request.deadline &&
     returned.depositMode === request.depositMode &&
+    returned.referral === configured.referral &&
+    appFeesMatch &&
     sameAddress(returned.refundTo, request.refundTo) &&
     sameAddress(returned.recipient, request.recipient) &&
     response.quote.amountIn === request.amount;
@@ -122,6 +134,23 @@ function assertQuoteMatchesRequest(
       "NEAR 1Click returned a quote that does not match the requested route.",
     );
   }
+}
+
+type AppFee = NonNullable<QuoteRequest["appFees"]>[number];
+
+export function matchesConfiguredAppFees(
+  returnedAppFees: readonly AppFee[],
+  configuredAppFees: readonly AppFee[],
+) {
+  return configuredAppFees.every((configuredFee) =>
+    returnedAppFees.some(
+      (returnedFee) =>
+        (isAddress(returnedFee.recipient) && isAddress(configuredFee.recipient)
+          ? sameAddress(returnedFee.recipient, configuredFee.recipient)
+          : returnedFee.recipient === configuredFee.recipient) &&
+        returnedFee.fee === configuredFee.fee,
+    ),
+  );
 }
 
 function assertFiniteAmount(value: string, label: string) {
@@ -151,7 +180,7 @@ function normalizeFees(
     amountInFormatted: response.quote.amountInFormatted,
     amountOutUsd: response.quote.amountOutUsd,
     appFees: configured.appFees ?? [],
-    hasNearIntentsApiKey: Boolean(process.env.NEAR_INTENTS_API_KEY?.trim()),
+    hasNearIntentsApiKey: false,
     returnedAppFees: response.quoteRequest.appFees ?? [],
   });
   const tokenInfo = { decimals: token.decimals, symbol: token.symbol };
@@ -184,20 +213,21 @@ function normalizeFees(
   ];
 }
 
-function normalizeQuote(
+async function normalizeQuote(
   response: NearQuoteResponse,
   request: RouteQuoteRequest,
   configured: QuoteRequest,
   expectedRequest: MvpQuoteRequest,
   dry: boolean,
-): NormalizedRouteQuote {
-  if (!verifyNearQuoteSignature(response)) {
+  managerPublicKey?: string,
+): Promise<NormalizedRouteQuote> {
+  if (!(await verifyNearQuoteSignature(response, managerPublicKey))) {
     return adapterError(
       "provider_error",
       "NEAR 1Click returned an invalid quote signature.",
     );
   }
-  assertQuoteMatchesRequest(response, expectedRequest, dry);
+  assertQuoteMatchesRequest(response, expectedRequest, configured, dry);
   assertFiniteAmount(
     response.quote.amountInFormatted,
     "formatted input amount",
@@ -240,32 +270,54 @@ function normalizeQuote(
 export async function requestNearQuote(
   routeRequest: RouteQuoteRequest,
   dry: boolean,
+  config: NearClientConfig = {},
+  signal?: AbortSignal,
 ) {
   const expectedRequest = buildQuoteRequest(routeRequest, dry);
-  const { configuredQuotePayload, requestOneClick } = await import(
-    "../../../intents/api.ts"
+  const feeBps = platformFeeBpsFor(
+    routeRequest.sourceAsset.chainId,
+    routeRequest.sponsorshipRequired,
   );
-  const configured = configuredQuotePayload(
-    expectedRequest,
-    platformFeeBpsFor(
-      routeRequest.sourceAsset.chainId,
-      routeRequest.sponsorshipRequired,
-    ),
-  );
-  if (!configured.ok) {
+  if (feeBps > 0 && !config.feeRecipient) {
     return adapterError(
       "provider_error",
-      "NEAR 1Click quote configuration is invalid.",
+      "NEAR 1Click fee recipient is not configured.",
     );
   }
+  if (config.feeRecipient !== undefined && !isAddress(config.feeRecipient)) {
+    return adapterError(
+      "invalid_request",
+      "The NEAR 1Click fee recipient must be a valid EVM address.",
+    );
+  }
+  if (
+    config.referralId !== undefined &&
+    (typeof config.referralId !== "string" || config.referralId.trim() === "")
+  ) {
+    return adapterError(
+      "invalid_request",
+      "The NEAR 1Click referral is invalid.",
+    );
+  }
+  const configured: QuoteRequest = {
+    ...expectedRequest,
+    ...(config.referralId?.trim()
+      ? { referral: config.referralId.trim() }
+      : {}),
+    ...(feeBps > 0 && config.feeRecipient
+      ? { appFees: [{ recipient: config.feeRecipient, fee: feeBps }] }
+      : {}),
+  };
 
-  const result = await requestOneClick(
+  const result = await requestNearOneClick(
+    config.apiUrl,
     "/v0/quote",
-    { method: "POST", body: JSON.stringify(configured.data) },
+    { method: "POST", body: JSON.stringify(configured) },
     quoteResponseSchema,
+    signal,
   );
   if (!result.ok) {
-    if (result.response.status >= 400 && result.response.status < 500) {
+    if (result.status >= 400 && result.status < 500) {
       return adapterError(
         "no_route",
         "NEAR 1Click could not find a route for this request.",
@@ -278,12 +330,13 @@ export async function requestNearQuote(
   }
 
   return {
-    quote: normalizeQuote(
+    quote: await normalizeQuote(
       result.data,
       routeRequest,
-      configured.data,
+      configured,
       expectedRequest,
       dry,
+      config.managerPublicKey,
     ),
     response: result.data,
   };

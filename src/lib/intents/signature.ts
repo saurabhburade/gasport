@@ -1,8 +1,3 @@
-import {
-  createHash,
-  createPublicKey,
-  verify as verifySignature,
-} from "node:crypto";
 import type { NearQuoteResponse } from "@/lib/intents/schemas";
 
 const ED25519_PREFIX = "ed25519:";
@@ -10,13 +5,15 @@ const DEFAULT_MANAGER_PUBLIC_KEY =
   "ed25519:reYaWhvwu8Jzo3WUM3zhn6VrhuMEF4eADL17qtRVifc";
 const BASE58_ALPHABET =
   "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-const ED25519_SPKI_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
+const ED25519_SPKI_PREFIX = new Uint8Array([
+  0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00,
+]);
 
 type SignedNearQuoteResponse = Omit<NearQuoteResponse, "correlationId"> & {
   correlationId?: string;
 };
 
-function decodeBase58(value: string) {
+function decodeBase58(value: string): Uint8Array {
   let decoded = 0n;
   for (const character of value) {
     const index = BASE58_ALPHABET.indexOf(character);
@@ -33,10 +30,10 @@ function decodeBase58(value: string) {
 
   let leadingZeros = 0;
   while (value[leadingZeros] === "1") leadingZeros += 1;
-  return Buffer.from([...new Array(leadingZeros).fill(0), ...bytes]);
+  return new Uint8Array([...new Array(leadingZeros).fill(0), ...bytes]);
 }
 
-function decodeEd25519(value: string, expectedLength: number) {
+function decodeEd25519(value: string, expectedLength: number): Uint8Array {
   const encoded = value.startsWith(ED25519_PREFIX)
     ? value.slice(ED25519_PREFIX.length)
     : value;
@@ -45,6 +42,19 @@ function decodeEd25519(value: string, expectedLength: number) {
     throw new Error("Invalid Ed25519 value.");
   }
   return decoded;
+}
+
+function concatBytes(first: Uint8Array, second: Uint8Array) {
+  const result = new Uint8Array(first.length + second.length);
+  result.set(first);
+  result.set(second, first.length);
+  return result;
+}
+
+function asArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
 }
 
 function stableStringify(value: unknown): string | undefined {
@@ -123,11 +133,10 @@ function signedQuote(response: SignedNearQuoteResponse) {
   };
 }
 
-export function verifyNearQuoteSignature(
+export async function verifyNearQuoteSignature(
   response: SignedNearQuoteResponse,
-  managerPublicKey = process.env.NEAR_INTENTS_MANAGER_PUBLIC_KEY?.trim() ||
-    DEFAULT_MANAGER_PUBLIC_KEY,
-) {
+  managerPublicKey = DEFAULT_MANAGER_PUBLIC_KEY,
+): Promise<boolean> {
   try {
     const payload = stableStringify({
       ...signedQuoteRequest(response),
@@ -136,9 +145,18 @@ export function verifyNearQuoteSignature(
     });
     if (!payload) return false;
 
-    const message = createHash("sha256").update(payload).digest();
+    const message = new Uint8Array(
+      await globalThis.crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(payload),
+      ),
+    );
     const messageBase58 = (() => {
-      let value = BigInt(`0x${message.toString("hex")}`);
+      let value = BigInt(
+        `0x${Array.from(message)
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("")}`,
+      );
       let encoded = "";
       while (value > 0n) {
         encoded = BASE58_ALPHABET[Number(value % 58n)] + encoded;
@@ -152,16 +170,18 @@ export function verifyNearQuoteSignature(
     })();
 
     const publicKeyBytes = decodeEd25519(managerPublicKey, 32);
-    const publicKey = createPublicKey({
-      key: Buffer.concat([ED25519_SPKI_PREFIX, publicKeyBytes]),
-      format: "der",
-      type: "spki",
-    });
-    return verifySignature(
-      null,
-      Buffer.from(messageBase58),
+    const publicKey = await globalThis.crypto.subtle.importKey(
+      "spki",
+      asArrayBuffer(concatBytes(ED25519_SPKI_PREFIX, publicKeyBytes)),
+      { name: "Ed25519" },
+      false,
+      ["verify"],
+    );
+    return await globalThis.crypto.subtle.verify(
+      { name: "Ed25519" },
       publicKey,
-      decodeEd25519(response.signature, 64),
+      asArrayBuffer(decodeEd25519(response.signature, 64)),
+      new TextEncoder().encode(messageBase58),
     );
   } catch {
     return false;

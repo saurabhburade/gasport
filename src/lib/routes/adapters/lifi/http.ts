@@ -28,13 +28,6 @@ export function statusUrl(
   return url;
 }
 
-function providerHeaders(includeApiKey: boolean) {
-  const headers = new Headers({ accept: "application/json" });
-  const apiKey = process.env.LIFI_API_KEY;
-  if (includeApiKey && apiKey) headers.set("x-lifi-api-key", apiKey);
-  return headers;
-}
-
 function isNoRouteResponse(status: number, body: unknown) {
   if (status === 404) return true;
   if (status !== 400 && status !== 422) return false;
@@ -51,15 +44,17 @@ function isNoRouteResponse(status: number, body: unknown) {
 async function requestProviderJson(
   url: URL,
   operation: "quote" | "status",
-  includeApiKey: boolean,
+  signal?: AbortSignal,
 ) {
   let response: Response;
   try {
     response = await globalThis.fetch(url, {
-      headers: providerHeaders(includeApiKey),
+      headers: { accept: "application/json" },
       cache: "no-store",
+      signal,
     });
   } catch (error) {
+    if (signal?.aborted) throw error;
     throw providerError(`LI.FI ${operation} service is unavailable.`, error);
   }
 
@@ -76,18 +71,15 @@ async function requestProviderJson(
 export async function fetchProviderJson(
   url: URL,
   operation: "quote" | "status",
+  signal?: AbortSignal,
 ) {
-  let { body, response } = await requestProviderJson(url, operation, true);
-  if (
-    process.env.LIFI_API_KEY &&
-    response.status === 401 &&
-    isRecord(body) &&
-    body.code === 1010 &&
-    body.message === "Invalid API key"
-  ) {
-    ({ body, response } = await requestProviderJson(url, operation, false));
-  }
+  const { body, response } = await requestProviderJson(url, operation, signal);
   if (!response.ok) {
+    if (response.status === 429) {
+      throw providerError(
+        "LI.FI public API is rate-limited. Try again shortly.",
+      );
+    }
     if (isNoRouteResponse(response.status, body)) {
       throw new RouteAdapterError("lifi", "no_route", "LI.FI found no route.");
     }

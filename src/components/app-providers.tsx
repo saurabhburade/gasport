@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { type Config, cookieToInitialState, WagmiProvider } from "wagmi";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { WalletTermsGate } from "@/components/wallet/wallet-terms-gate";
 import { appKit, wagmiAdapter } from "@/config/appkit";
 
 const queryClient = new QueryClient();
@@ -30,10 +29,7 @@ export function AppProviders({
       initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          {children}
-          <WalletTermsGate />
-        </TooltipProvider>
+        <TooltipProvider>{children}</TooltipProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

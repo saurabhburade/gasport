@@ -1,23 +1,34 @@
 import { type Address, type Hex, isAddress } from "viem";
 import { encodeNearDepositTransfer } from "../../gas/near-execution.ts";
 import type {
+  NearClientConfig,
   PreparedRoute,
   RouteAdapter,
   RouteExecutionStatus,
+  RouteQuoteRequest,
+  RouteSettlement,
 } from "../types.ts";
 import { adapterError } from "./near-oneclick/common.ts";
 import { requestNearQuote } from "./near-oneclick/quote.ts";
 import { getNearRouteStatus } from "./near-oneclick/status.ts";
 
-export const nearOneClickAdapter: RouteAdapter = {
-  id: "near-1click",
+export class NearOneClickRouteAdapter implements RouteAdapter {
+  readonly id = "near-1click" as const;
+  private readonly config: NearClientConfig;
 
-  async getQuote(request) {
-    return (await requestNearQuote(request, true)).quote;
-  },
+  constructor(config: NearClientConfig = {}) {
+    this.config = config;
+  }
 
-  async prepare(request): Promise<PreparedRoute> {
-    const result = await requestNearQuote(request, false);
+  async getQuote(request: RouteQuoteRequest, signal?: AbortSignal) {
+    return (await requestNearQuote(request, true, this.config, signal)).quote;
+  }
+
+  async prepare(
+    request: RouteQuoteRequest,
+    signal?: AbortSignal,
+  ): Promise<PreparedRoute> {
+    const result = await requestNearQuote(request, false, this.config, signal);
     const depositAddress = result.response.quote.depositAddress;
     if (!depositAddress || !isAddress(depositAddress)) {
       return adapterError(
@@ -73,11 +84,17 @@ export const nearOneClickAdapter: RouteAdapter = {
       },
       sourceChainId: request.sourceAsset.chainId,
     };
-  },
+  }
 
-  getStatus(settlement, sourceTxHash): Promise<RouteExecutionStatus> {
-    return getNearRouteStatus(settlement, sourceTxHash);
-  },
-};
+  getStatus(
+    settlement: RouteSettlement,
+    sourceTxHash: Hex,
+    signal?: AbortSignal,
+  ): Promise<RouteExecutionStatus> {
+    return getNearRouteStatus(settlement, sourceTxHash, this.config, signal);
+  }
+}
+
+export const nearOneClickAdapter: RouteAdapter = new NearOneClickRouteAdapter();
 
 export default nearOneClickAdapter;

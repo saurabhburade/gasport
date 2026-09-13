@@ -3,6 +3,7 @@
 import { useAppKit } from "@reown/appkit/react";
 import { Fuel } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { useGasTheme } from "@/components/gas/workspace/use-gas-theme";
@@ -11,6 +12,7 @@ import { WalletButton } from "@/components/wallet/wallet-button";
 import { appKitProjectId } from "@/config/appkit";
 
 export function HowItWorksPage() {
+  const router = useRouter();
   const { open: openAppKit } = useAppKit();
   const [demoConnected, setDemoConnected] = useState(false);
   const { isDark, toggleTheme } = useGasTheme();
@@ -39,7 +41,7 @@ export function HowItWorksPage() {
           active: true,
           icon: <Fuel aria-hidden="true" className="size-4" />,
           label: "Gasport",
-          onClick: () => window.location.assign("/"),
+          onClick: () => router.push("/"),
         },
       ]}
     >

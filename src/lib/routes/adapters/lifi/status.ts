@@ -114,6 +114,7 @@ function normalizeStatus(value: unknown): RouteExecutionStatus {
 export async function getLifiStatus(
   settlement: RouteSettlement,
   sourceTxHash: Hex,
+  signal?: AbortSignal,
 ): Promise<RouteExecutionStatus> {
   if (
     settlement.kind !== "lifi" ||
@@ -128,7 +129,11 @@ export async function getLifiStatus(
   }
   try {
     return normalizeStatus(
-      await fetchProviderJson(statusUrl(settlement, sourceTxHash), "status"),
+      await fetchProviderJson(
+        statusUrl(settlement, sourceTxHash),
+        "status",
+        signal,
+      ),
     );
   } catch (error) {
     if (error instanceof RouteAdapterError && error.code === "no_route") {

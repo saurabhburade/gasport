@@ -2,21 +2,24 @@
 
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { useGasExecution } from "@/hooks/use-gas-execution";
+import type { NearClientConfig } from "@/lib/routes/types";
 import type { GasFlowState } from "@/types/gas";
 import { progressIndex } from "./constants";
 
 export function useSyncedGasExecution({
   connected,
+  nearClientConfig,
   setError,
   setState,
   state,
 }: {
   connected: boolean;
+  nearClientConfig: NearClientConfig;
   setError: Dispatch<SetStateAction<string | null>>;
   setState: Dispatch<SetStateAction<GasFlowState>>;
   state: GasFlowState;
 }) {
-  const execution = useGasExecution();
+  const execution = useGasExecution({ nearClientConfig });
   const [isExecutionDialogDismissed, setIsExecutionDialogDismissed] =
     useState(false);
   const [resumeExecutionAfterConnect, setResumeExecutionAfterConnect] =

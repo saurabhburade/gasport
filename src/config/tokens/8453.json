@@ -6,7 +6,11 @@
     "decimals": 8,
     "symbol": "cbBTC",
     "logoURI": "https://coin-images.coingecko.com/coins/images/40143/large/cbbtc.webp?1726136727",
-    "coingeckoId": "coinbase-wrapped-btc"
+    "coingeckoId": "coinbase-wrapped-btc",
+    "chainlinkUsdFeed": {
+      "address": "0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D",
+      "heartbeatSeconds": 1200
+    }
   },
   {
     "assetId": "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
@@ -15,7 +19,11 @@
     "decimals": 6,
     "symbol": "USDC",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/logo.png",
-    "coingeckoId": "usd-coin"
+    "coingeckoId": "usd-coin",
+    "chainlinkUsdFeed": {
+      "address": "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
+      "heartbeatSeconds": 86400
+    }
   },
   {
     "assetId": "nep141:base-0x4200000000000000000000000000000000000006.omft.near",
@@ -24,6 +32,10 @@
     "decimals": 18,
     "symbol": "WETH",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x4200000000000000000000000000000000000006/logo.png",
-    "coingeckoId": "ethereum"
+    "coingeckoId": "ethereum",
+    "chainlinkUsdFeed": {
+      "address": "0x5731Ae06077c79A3B292498940211E0aE7130bd3",
+      "heartbeatSeconds": 1200
+    }
   }
 ]

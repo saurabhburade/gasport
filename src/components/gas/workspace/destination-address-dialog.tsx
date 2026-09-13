@@ -26,7 +26,7 @@ export function DestinationAddressDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
-        className="gap-4 p-5 sm:max-w-[480px]"
+        className="gap-4 p-5 sm:max-w-[400px]"
         initialFocus={false}
       >
         <DialogHeader className="pr-8">

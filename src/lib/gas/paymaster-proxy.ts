@@ -8,6 +8,30 @@ const ALLOWED_ENTRY_POINTS = new Set([
   "0x0000000071727de22e5e9d8baf0edac6f37da032",
 ]);
 
+const ADDRESS_PATTERN = /^0x[0-9a-f]{40}$/i;
+const HEX_PATTERN = /^0x[0-9a-f]*$/i;
+const USER_OPERATION_HEX_FIELDS = [
+  "nonce",
+  "callData",
+  "callGasLimit",
+  "verificationGasLimit",
+  "preVerificationGas",
+  "maxFeePerGas",
+  "maxPriorityFeePerGas",
+  "initCode",
+  "factoryData",
+  "accountGasLimits",
+  "gasFees",
+  "paymasterAndData",
+  "paymasterData",
+  "paymasterVerificationGasLimit",
+  "paymasterPostOpGasLimit",
+  "signature",
+] as const;
+const USER_OPERATION_ADDRESS_FIELDS = ["factory", "paymaster"] as const;
+
+type JsonRpcId = string | number;
+
 export class PaymasterRequestError extends Error {
   readonly code: -32600 | -32601 | -32602;
 
@@ -24,9 +48,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function getJsonRpcId(value: unknown) {
   if (!isRecord(value)) return null;
-  return typeof value.id === "string" || typeof value.id === "number"
-    ? value.id
-    : null;
+  return isJsonRpcId(value.id) ? value.id : null;
+}
+
+function isJsonRpcId(value: unknown): value is JsonRpcId {
+  return (
+    (typeof value === "string" && value.length > 0) ||
+    (typeof value === "number" && Number.isSafeInteger(value))
+  );
 }
 
 export function getPaymasterRequestChainId(value: unknown) {
@@ -50,6 +79,50 @@ export function getPaymasterRequestChainId(value: unknown) {
   return parsed;
 }
 
+function assertUserOperation(value: unknown) {
+  if (!isRecord(value)) {
+    throw new PaymasterRequestError(
+      "Expected a partial ERC-4337 UserOperation.",
+      -32602,
+    );
+  }
+  if (typeof value.sender !== "string" || !ADDRESS_PATTERN.test(value.sender)) {
+    throw new PaymasterRequestError(
+      "Expected a valid UserOperation sender.",
+      -32602,
+    );
+  }
+  if (typeof value.nonce !== "string" || !HEX_PATTERN.test(value.nonce)) {
+    throw new PaymasterRequestError(
+      "Expected a hexadecimal UserOperation nonce.",
+      -32602,
+    );
+  }
+
+  for (const field of USER_OPERATION_HEX_FIELDS) {
+    if (
+      field in value &&
+      (typeof value[field] !== "string" || !HEX_PATTERN.test(value[field]))
+    ) {
+      throw new PaymasterRequestError(
+        `Expected UserOperation field ${field} in hexadecimal form.`,
+        -32602,
+      );
+    }
+  }
+  for (const field of USER_OPERATION_ADDRESS_FIELDS) {
+    if (
+      field in value &&
+      (typeof value[field] !== "string" || !ADDRESS_PATTERN.test(value[field]))
+    ) {
+      throw new PaymasterRequestError(
+        `Expected UserOperation field ${field} to be an address.`,
+        -32602,
+      );
+    }
+  }
+}
+
 export function prepareAlchemyPaymasterRequest(
   value: unknown,
   policyId: string,
@@ -57,6 +130,12 @@ export function prepareAlchemyPaymasterRequest(
 ) {
   if (!isRecord(value) || value.jsonrpc !== "2.0") {
     throw new PaymasterRequestError("Invalid JSON-RPC request.", -32600);
+  }
+  if (!Object.hasOwn(value, "id") || !isJsonRpcId(value.id)) {
+    throw new PaymasterRequestError(
+      "A JSON-RPC request id is required.",
+      -32600,
+    );
   }
   if (
     typeof value.method !== "string" ||
@@ -67,7 +146,7 @@ export function prepareAlchemyPaymasterRequest(
       -32601,
     );
   }
-  if (!Array.isArray(value.params) || value.params.length < 4) {
+  if (!Array.isArray(value.params) || value.params.length !== 4) {
     throw new PaymasterRequestError(
       "Expected ERC-7677 paymaster parameters.",
       -32602,
@@ -84,6 +163,22 @@ export function prepareAlchemyPaymasterRequest(
     !ALLOWED_ENTRY_POINTS.has(value.params[1].toLowerCase())
   ) {
     throw new PaymasterRequestError("Unsupported ERC-4337 EntryPoint.", -32602);
+  }
+  assertUserOperation(value.params[0]);
+  if (!isRecord(value.params[3])) {
+    throw new PaymasterRequestError(
+      "Expected an ERC-7677 paymaster context object.",
+      -32602,
+    );
+  }
+  if (typeof policyId !== "string" || policyId.trim().length === 0) {
+    throw new PaymasterRequestError(
+      "The paymaster policy is unavailable.",
+      -32600,
+    );
+  }
+  if (!Number.isSafeInteger(expectedChainId) || expectedChainId <= 0) {
+    throw new PaymasterRequestError("Invalid paymaster chain ID.", -32602);
   }
 
   return {

@@ -3,10 +3,15 @@ import {
   classifyNearExecutionStatus,
   parseNearTransactionHash,
 } from "../../../gas/near-execution.ts";
+import { requestNearOneClick } from "../../../intents/browser-request.ts";
 import { getNearIntentsExplorerSearchUrl } from "../../../intents/deposit-registration.ts";
 import { executionResponseSchema } from "../../../intents/schemas.ts";
 import { verifyNearQuoteSignature } from "../../../intents/signature.ts";
-import type { RouteExecutionStatus, RouteSettlement } from "../../types.ts";
+import type {
+  NearClientConfig,
+  RouteExecutionStatus,
+  RouteSettlement,
+} from "../../types.ts";
 import {
   adapterError,
   assertAddress,
@@ -102,6 +107,8 @@ function assertStatusMatchesSettlement(
 export async function getNearRouteStatus(
   settlement: RouteSettlement,
   sourceTxHash: Hex,
+  config: NearClientConfig = {},
+  signal?: AbortSignal,
 ): Promise<RouteExecutionStatus> {
   const nearSettlement = assertNearSettlement(settlement);
   try {
@@ -121,31 +128,28 @@ export async function getNearRouteStatus(
     params.set("depositMemo", nearSettlement.depositMemo);
   }
 
-  const { requestOneClick } = await import("../../../intents/api.ts");
-  const result = await requestOneClick(
+  const result = await requestNearOneClick(
+    config.apiUrl,
     `/v0/status?${params.toString()}`,
     { method: "GET" },
     executionResponseSchema,
+    signal,
   );
   if (!result.ok) {
-    if (!process.env.NEAR_INTENTS_API_KEY?.trim()) {
-      return {
-        explorerUrl: getNearIntentsExplorerSearchUrl(sourceTxHash),
-        kind: "success",
-      };
-    }
-    if (result.response.status >= 400 && result.response.status < 500) {
-      return adapterError(
-        "no_route",
-        "NEAR 1Click has no status for this settlement yet.",
-      );
+    if (result.status === 404) {
+      return { kind: "pending" };
     }
     return adapterError(
       "provider_error",
       "NEAR 1Click status service is unavailable.",
     );
   }
-  if (!verifyNearQuoteSignature(result.data.quoteResponse)) {
+  if (
+    !(await verifyNearQuoteSignature(
+      result.data.quoteResponse,
+      config.managerPublicKey,
+    ))
+  ) {
     return adapterError(
       "provider_error",
       "NEAR 1Click returned an invalid status signature.",

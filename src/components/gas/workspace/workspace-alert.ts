@@ -54,7 +54,7 @@ export function workspaceAlert({
           sourceChain.decimals,
         ),
       )
-    : "—";
+    : "-";
   const requiredSourceGas = sourceGasEstimate
     ? formatBalance(
         formatUnits(
@@ -62,7 +62,7 @@ export function workspaceAlert({
           sourceChain.decimals,
         ),
       )
-    : "—";
+    : "-";
 
   if ((quoteStatus === "error" || quoteStatus === "invalid") && quoteError) {
     return {

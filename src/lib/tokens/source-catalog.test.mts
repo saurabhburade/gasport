@@ -69,6 +69,31 @@ test("deduplicates contracts by chain and address", () => {
   assert.equal(sourceTokensFromCatalog([token, token]).length, 1);
 });
 
+test("keeps a valid token feed beside its catalog token", () => {
+  const token = {
+    assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+    blockchain: "base",
+    contractAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    decimals: 6,
+    symbol: "USDC",
+  };
+  const feed = {
+    address: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
+    heartbeatSeconds: 86_400,
+  };
+  assert.deepEqual(
+    sourceTokensFromCatalog([{ ...token, chainlinkUsdFeed: feed }])[0]
+      ?.chainlinkUsdFeed,
+    feed,
+  );
+  assert.equal(
+    sourceTokensFromCatalog([
+      { ...token, chainlinkUsdFeed: { ...feed, heartbeatSeconds: 0 } },
+    ])[0]?.chainlinkUsdFeed,
+    undefined,
+  );
+});
+
 test("enriches only exact chain and address matches from a token list", () => {
   const catalog = [
     {

@@ -9,10 +9,19 @@ import {
   useState,
 } from "react";
 import { type Address, formatUnits, parseUnits, zeroAddress } from "viem";
-import type { DestinationChain } from "@/config/chains";
+import { CHAIN_LIST, type DestinationChain } from "@/config/chains";
+import {
+  type ClientSourceGasConfig,
+  estimateSourceGasInBrowser,
+} from "@/lib/gas/client-source-gas";
 import type { SourceGasEstimate } from "@/lib/gas/source-gas";
 import { calculateNetRouteAmount } from "@/lib/gas/source-gas-amount";
-import type { NormalizedRouteQuote } from "@/lib/routes/types";
+import { LifiRouteAdapter } from "@/lib/routes/adapters/lifi";
+import { NearOneClickRouteAdapter } from "@/lib/routes/adapters/near-oneclick";
+import type {
+  NearClientConfig,
+  NormalizedRouteQuote,
+} from "@/lib/routes/types";
 import type { GasQuote } from "@/types/gas";
 import type { Token } from "@/types/tokens";
 import {
@@ -23,7 +32,7 @@ import {
   routeQuoteRequest,
 } from "./common";
 import { providerLabelById, QUOTE_DEBOUNCE_MS } from "./constants";
-import type { MarketQuote, RouteQuoteApiResponse } from "./types";
+import type { MarketQuote } from "./types";
 
 export type QuoteStatus = "idle" | "loading" | "ready" | "error" | "invalid";
 
@@ -35,6 +44,8 @@ export function useLiveRouteQuote({
   quoteUpdatesEnabled,
   quoteWalletAddress,
   recipientAddress,
+  nearClientConfig,
+  sourceGasConfig,
   token,
 }: {
   amount: string;
@@ -44,6 +55,8 @@ export function useLiveRouteQuote({
   quoteUpdatesEnabled: boolean;
   quoteWalletAddress: Address;
   recipientAddress?: Address;
+  nearClientConfig: NearClientConfig;
+  sourceGasConfig: ClientSourceGasConfig;
   token: Token;
 }) {
   const [liveQuote, setLiveQuote] = useState<NormalizedRouteQuote | null>(null);
@@ -54,6 +67,8 @@ export function useLiveRouteQuote({
   const [quoteRefreshKey, setQuoteRefreshKey] = useState(0);
 
   useEffect(() => {
+    // A manual refresh must request fresh provider quotes even if inputs match.
+    void quoteRefreshKey;
     if (!quoteUpdatesEnabled) return;
 
     let inputAmount: bigint;
@@ -87,62 +102,68 @@ export function useLiveRouteQuote({
     setQuoteStatus("loading");
     const timer = window.setTimeout(async () => {
       try {
-        const gasResponse = await fetch("/api/gas/estimate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const sourceChain = CHAIN_LIST.find(
+          (chain) => chain.id === token.chainId,
+        );
+        if (!sourceChain) throw new Error("Unsupported source chain.");
+        const gasEstimate = await estimateSourceGasInBrowser({
+          account: quoteWalletAddress,
+          amount: inputAmount,
+          chain: sourceChain,
+          config: sourceGasConfig,
           signal: controller.signal,
-          body: JSON.stringify({
-            account: quoteWalletAddress,
-            amount: inputAmount.toString(),
-            chainId: token.chainId,
-            quoteOnly: true,
-            token: token.address,
-          }),
+          token,
         });
-        const gasEstimate = (await gasResponse.json()) as SourceGasEstimate & {
-          error?: string;
-        };
-        if (!gasResponse.ok) {
-          throw new Error(
-            gasEstimate.error ?? "Source gas estimate is unavailable.",
-          );
-        }
         const feeAmount = BigInt(gasEstimate.feeAmount);
         const quotedAmount = calculateNetRouteAmount({
           grossAmount: inputAmount,
           sponsorshipFee: feeAmount,
         });
-        const response = await fetch(
-          `/api/routes/quote?refresh=${quoteRefreshKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            signal: controller.signal,
-            body: JSON.stringify({
-              ...routeQuoteRequest({
-                account: quoteWalletAddress,
-                amount: quotedAmount,
-                destination,
-                recipient: recipientAddress,
-                sponsorshipRequired: gasEstimate.sponsorshipRequired,
-                token,
-              }),
-              provider: "auto",
-            }),
-          },
+        const quoteRequest = routeQuoteRequest({
+          account: quoteWalletAddress,
+          amount: quotedAmount,
+          destination,
+          recipient: recipientAddress,
+          sponsorshipRequired: gasEstimate.sponsorshipRequired,
+          token,
+        });
+        const results = await Promise.allSettled([
+          new LifiRouteAdapter(sourceGasConfig.platformFeeRecipient).getQuote(
+            quoteRequest,
+            AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+          ),
+          new NearOneClickRouteAdapter(nearClientConfig).getQuote(
+            quoteRequest,
+            AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+          ),
+        ]);
+        if (controller.signal.aborted) return;
+        const quotes = results.flatMap((result) =>
+          result.status === "fulfilled" ? [result.value] : [],
         );
-        const body = (await response.json()) as RouteQuoteApiResponse;
-        if (!response.ok) {
-          throw new Error(body.error ?? "Quote request failed.");
+        quotes.sort((first, second) => {
+          const amountDifference =
+            BigInt(second.amountOut) - BigInt(first.amountOut);
+          if (amountDifference !== 0n) return amountDifference > 0n ? 1 : -1;
+          return (
+            (first.durationSeconds ?? Infinity) -
+            (second.durationSeconds ?? Infinity)
+          );
+        });
+        const selected = quotes[0];
+        if (!selected) {
+          const failure = results.find(
+            (result) => result.status === "rejected",
+          );
+          throw failure?.reason instanceof Error
+            ? failure.reason
+            : new Error("No route provider returned a usable quote.");
         }
-        if (!body.selected) {
-          throw new Error("No route provider returned a usable quote.");
-        }
-        if (marketQuoteExpiry(body.selected) <= Date.now()) {
+        if (marketQuoteExpiry(selected) <= Date.now()) {
           throw new Error("The route provider returned an expired quote.");
         }
         setSourceGasEstimate(gasEstimate);
-        setLiveQuote(body.selected);
+        setLiveQuote(selected);
         setQuoteStatus("ready");
       } catch (requestError) {
         if (controller.signal.aborted) return;
@@ -165,11 +186,13 @@ export function useLiveRouteQuote({
     amount,
     destination,
     inputLimit,
+    nearClientConfig,
     quoteRefreshKey,
     quoteUpdatesEnabled,
     quoteWalletAddress,
     recipientAddress,
     setWorkspaceError,
+    sourceGasConfig,
     token,
   ]);
 

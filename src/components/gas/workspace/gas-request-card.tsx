@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DestinationChain } from "@/config/chains";
 import type { NormalizedRouteQuote } from "@/lib/routes/types";
+import { cn } from "@/lib/utils";
 import type { Token } from "@/types/tokens";
 import { NativeGasMark, TokenMark } from "./asset-marks";
 import { formatAddress, formatBalance, formatUsd } from "./common";
@@ -68,7 +69,7 @@ export function GasRequestCard({
                 id="amount"
                 aria-label="Amount"
                 autoComplete="off"
-                className="h-auto min-w-0 rounded-none border-0 bg-transparent p-0 text-4xl font-semibold tracking-[-0.07em] shadow-none focus-visible:border-0 focus-visible:ring-0 aria-invalid:!border-0 aria-invalid:!ring-0 md:text-4xl"
+                className="h-auto min-w-0 rounded-none border-0 bg-transparent p-0 text-4xl font-semibold tracking-[-0.07em] shadow-none placeholder:text-foreground/40 focus-visible:border-0 focus-visible:ring-0 aria-invalid:!border-0 aria-invalid:!ring-0 md:text-4xl"
                 inputMode="decimal"
                 max={formatUnits(inputLimit, token.decimals)}
                 pattern="[0-9]*[.]?[0-9]*"
@@ -116,7 +117,12 @@ export function GasRequestCard({
             {quoteStatus === "loading" ? (
               <Skeleton className="h-9 w-40" />
             ) : (
-              <span className="min-w-0 flex-1 tabular-nums text-3xl font-semibold tracking-[-0.06em]">
+              <span
+                className={cn(
+                  "min-w-0 flex-1 tabular-nums text-3xl font-semibold tracking-[-0.06em]",
+                  !marketQuote && "text-foreground/40",
+                )}
+              >
                 {marketQuote?.output ?? "0.00"}
               </span>
             )}

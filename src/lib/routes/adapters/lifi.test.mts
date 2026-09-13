@@ -174,226 +174,145 @@ test("exports a LI.FI adapter and normalizes an exact-input quote", async () => 
   assert.equal(seenUrl?.searchParams.get("slippage"), "0.005");
 });
 
-test("uses the optional server key and prepares an exact ERC-20 approval", async () => {
-  const oldKey = process.env.LIFI_API_KEY;
-  process.env.LIFI_API_KEY = "test-only-key";
-  try {
-    await withFetch(
-      (_url, init) => {
-        assert.equal(
-          new Headers(init.headers).get("x-lifi-api-key"),
-          "test-only-key",
-        );
-        return new Response(JSON.stringify(quoteResponse()));
-      },
-      async () => {
-        const prepared = await new LifiRouteAdapter().prepare(request);
-        assert.equal(prepared.calls.length, 2);
-        assert.equal(prepared.calls[0]?.to, BASE_USDC);
-        assert.match(prepared.calls[0]?.data ?? "", /^0x095ea7b3/);
-        assert.match(
-          prepared.calls[0]?.data ?? "",
-          /00000000000000000000000000000000000000000000000000000000000f4240$/,
-        );
-        assert.equal(prepared.calls[0]?.value, "0x0");
-        assert.deepEqual(prepared.calls[1], {
-          to: ROUTER,
-          data: "0x1234",
-          value: "0x0",
-        });
-        assert.deepEqual(prepared.settlement, {
-          kind: "lifi",
-          destinationChainId: 10,
-          tool: "stargate",
-        });
-      },
-    );
-  } finally {
-    if (oldKey === undefined) delete process.env.LIFI_API_KEY;
-    else process.env.LIFI_API_KEY = oldKey;
-  }
+test("prepares an exact ERC-20 approval through the public API", async () => {
+  await withFetch(
+    (_url, init) => {
+      assert.equal(new Headers(init.headers).get("x-lifi-api-key"), null);
+      return new Response(JSON.stringify(quoteResponse()));
+    },
+    async () => {
+      const prepared = await new LifiRouteAdapter().prepare(request);
+      assert.equal(prepared.calls.length, 2);
+      assert.equal(prepared.calls[0]?.to, BASE_USDC);
+      assert.match(prepared.calls[0]?.data ?? "", /^0x095ea7b3/);
+      assert.match(
+        prepared.calls[0]?.data ?? "",
+        /00000000000000000000000000000000000000000000000000000000000f4240$/,
+      );
+      assert.equal(prepared.calls[0]?.value, "0x0");
+      assert.deepEqual(prepared.calls[1], {
+        to: ROUTER,
+        data: "0x1234",
+        value: "0x0",
+      });
+      assert.deepEqual(prepared.settlement, {
+        kind: "lifi",
+        destinationChainId: 10,
+        tool: "stargate",
+      });
+    },
+  );
 });
 
-test("retries a quote without the optional LI.FI key when it is invalid", async () => {
-  const oldKey = process.env.LIFI_API_KEY;
-  process.env.LIFI_API_KEY = "bad-key";
+test("does not send a configured server key to the public API", async () => {
   let calls = 0;
-  try {
-    await withFetch(
-      (_url, init) => {
-        calls += 1;
-        const key = new Headers(init.headers).get("x-lifi-api-key");
-        if (calls === 1) {
-          assert.equal(key, "bad-key");
-          return new Response(
-            JSON.stringify({ code: 1010, message: "Invalid API key" }),
-            { status: 401 },
-          );
-        }
-        assert.equal(key, null);
-        return new Response(JSON.stringify(quoteResponse()));
-      },
-      async () => {
-        const result = await lifiAdapter.getQuote(request);
-        assert.equal(result.provider, "lifi");
-      },
-    );
-    assert.equal(calls, 2);
-  } finally {
-    if (oldKey === undefined) delete process.env.LIFI_API_KEY;
-    else process.env.LIFI_API_KEY = oldKey;
-  }
+  await withFetch(
+    (_url, init) => {
+      calls += 1;
+      assert.equal(new Headers(init.headers).get("x-lifi-api-key"), null);
+      return new Response(JSON.stringify(quoteResponse()));
+    },
+    async () => {
+      const result = await lifiAdapter.getQuote(request);
+      assert.equal(result.provider, "lifi");
+    },
+  );
+  assert.equal(calls, 1);
 });
 
-test("does not retry unrelated LI.FI authorization failures", async () => {
-  const oldKey = process.env.LIFI_API_KEY;
-  process.env.LIFI_API_KEY = "test-only-key";
+test("does not retry LI.FI authorization failures", async () => {
   let calls = 0;
-  try {
-    await withFetch(
-      (_url, init) => {
-        calls += 1;
-        assert.equal(
-          new Headers(init.headers).get("x-lifi-api-key"),
-          "test-only-key",
-        );
-        return new Response(
-          JSON.stringify({ code: 1010, message: "Account restricted" }),
-          { status: 401 },
-        );
-      },
-      async () => {
-        await assert.rejects(
-          lifiAdapter.getQuote(request),
-          (error: unknown) =>
-            error instanceof RouteAdapterError &&
-            error.code === "provider_error",
-        );
-      },
-    );
-    assert.equal(calls, 1);
-  } finally {
-    if (oldKey === undefined) delete process.env.LIFI_API_KEY;
-    else process.env.LIFI_API_KEY = oldKey;
-  }
+  await withFetch(
+    (_url, init) => {
+      calls += 1;
+      assert.equal(new Headers(init.headers).get("x-lifi-api-key"), null);
+      return new Response(
+        JSON.stringify({ code: 1010, message: "Account restricted" }),
+        { status: 401 },
+      );
+    },
+    async () => {
+      await assert.rejects(
+        lifiAdapter.getQuote(request),
+        (error: unknown) =>
+          error instanceof RouteAdapterError && error.code === "provider_error",
+      );
+    },
+  );
+  assert.equal(calls, 1);
 });
 
 test("deducts the 1% platform fee before quoting and transfers it atomically", async () => {
-  const oldRecipient = process.env.PLATFORM_FEE_RECIPIENT;
-  process.env.PLATFORM_FEE_RECIPIENT = FEE_RECIPIENT;
-  try {
-    await withFetch(
-      (url) => {
-        assert.equal(url.searchParams.get("fromAmount"), "990000");
-        return new Response(JSON.stringify(quoteResponseForAmount("990000")));
-      },
-      async () => {
-        const prepared = await new LifiRouteAdapter().prepare(request);
-        assert.equal(prepared.quote.amountIn, "1000000");
-        assert.deepEqual(prepared.quote.fees[0], {
-          amount: "0.01",
-          deductedFromInput: true,
-          kind: "platform",
-          label: "Platform fee",
-          rateBps: 100,
-          token: { decimals: 6, symbol: "USDC" },
-        });
-        assert.equal(prepared.calls.length, 3);
-        assert.equal(prepared.calls[0]?.to, BASE_USDC);
-        assert.match(prepared.calls[0]?.data ?? "", /^0xa9059cbb/);
-        assert.match(
-          prepared.calls[0]?.data ?? "",
-          /0000000000000000000000006666666666666666666666666666666666666666/,
-        );
-        assert.match(
-          prepared.calls[0]?.data ?? "",
-          /0000000000000000000000000000000000000000000000000000000000002710$/,
-        );
-        assert.match(
-          prepared.calls[1]?.data ?? "",
-          /00000000000000000000000000000000000000000000000000000000000f1b30$/,
-        );
-      },
-    );
-  } finally {
-    if (oldRecipient === undefined) delete process.env.PLATFORM_FEE_RECIPIENT;
-    else process.env.PLATFORM_FEE_RECIPIENT = oldRecipient;
-  }
+  await withFetch(
+    (url) => {
+      assert.equal(url.searchParams.get("fromAmount"), "990000");
+      return new Response(JSON.stringify(quoteResponseForAmount("990000")));
+    },
+    async () => {
+      const prepared = await new LifiRouteAdapter(FEE_RECIPIENT).prepare(
+        request,
+      );
+      assert.equal(prepared.quote.amountIn, "1000000");
+      assert.deepEqual(prepared.quote.fees[0], {
+        amount: "0.01",
+        deductedFromInput: true,
+        kind: "platform",
+        label: "Platform fee",
+        rateBps: 100,
+        token: { decimals: 6, symbol: "USDC" },
+      });
+      assert.equal(prepared.calls.length, 3);
+      assert.equal(prepared.calls[0]?.to, BASE_USDC);
+      assert.match(prepared.calls[0]?.data ?? "", /^0xa9059cbb/);
+      assert.match(
+        prepared.calls[0]?.data ?? "",
+        /0000000000000000000000006666666666666666666666666666666666666666/,
+      );
+      assert.match(
+        prepared.calls[0]?.data ?? "",
+        /0000000000000000000000000000000000000000000000000000000000002710$/,
+      );
+      assert.match(
+        prepared.calls[1]?.data ?? "",
+        /00000000000000000000000000000000000000000000000000000000000f1b30$/,
+      );
+    },
+  );
 });
 
 test("deducts the chain's 5% platform fee when source gas is self-funded", async () => {
-  const oldRecipient = process.env.PLATFORM_FEE_RECIPIENT;
-  process.env.PLATFORM_FEE_RECIPIENT = FEE_RECIPIENT;
-  try {
-    await withFetch(
-      (url) => {
-        assert.equal(url.searchParams.get("fromAmount"), "950000");
-        return new Response(JSON.stringify(quoteResponseForAmount("950000")));
-      },
-      async () => {
-        const prepared = await new LifiRouteAdapter().prepare({
-          ...request,
-          sponsorshipRequired: false,
-        });
-        assert.deepEqual(prepared.quote.fees[0], {
-          amount: "0.05",
-          deductedFromInput: true,
-          kind: "platform",
-          label: "Platform fee",
-          rateBps: 500,
-          token: { decimals: 6, symbol: "USDC" },
-        });
-        assert.match(
-          prepared.calls[0]?.data ?? "",
-          /000000000000000000000000000000000000000000000000000000000000c350$/,
-        );
-      },
-    );
-  } finally {
-    if (oldRecipient === undefined) delete process.env.PLATFORM_FEE_RECIPIENT;
-    else process.env.PLATFORM_FEE_RECIPIENT = oldRecipient;
-  }
+  await withFetch(
+    (url) => {
+      assert.equal(url.searchParams.get("fromAmount"), "950000");
+      return new Response(JSON.stringify(quoteResponseForAmount("950000")));
+    },
+    async () => {
+      const prepared = await new LifiRouteAdapter(FEE_RECIPIENT).prepare({
+        ...request,
+        sponsorshipRequired: false,
+      });
+      assert.deepEqual(prepared.quote.fees[0], {
+        amount: "0.05",
+        deductedFromInput: true,
+        kind: "platform",
+        label: "Platform fee",
+        rateBps: 500,
+        token: { decimals: 6, symbol: "USDC" },
+      });
+      assert.match(
+        prepared.calls[0]?.data ?? "",
+        /000000000000000000000000000000000000000000000000000000000000c350$/,
+      );
+    },
+  );
 });
 
-test("falls back to the sponsorship recipient when the platform recipient is blank", async () => {
-  const oldPlatformRecipient = process.env.PLATFORM_FEE_RECIPIENT;
-  const oldSponsorshipRecipient = process.env.SPONSORED_GAS_FEE_RECIPIENT;
-  process.env.PLATFORM_FEE_RECIPIENT = "";
-  process.env.SPONSORED_GAS_FEE_RECIPIENT = FEE_RECIPIENT;
-  try {
-    await withFetch(
-      (url) => {
-        assert.equal(url.searchParams.get("fromAmount"), "990000");
-        return new Response(JSON.stringify(quoteResponseForAmount("990000")));
-      },
-      async () => {
-        const result = await new LifiRouteAdapter().getQuote(request);
-        assert.equal(result.fees[0]?.kind, "platform");
-      },
-    );
-  } finally {
-    if (oldPlatformRecipient === undefined)
-      delete process.env.PLATFORM_FEE_RECIPIENT;
-    else process.env.PLATFORM_FEE_RECIPIENT = oldPlatformRecipient;
-    if (oldSponsorshipRecipient === undefined)
-      delete process.env.SPONSORED_GAS_FEE_RECIPIENT;
-    else process.env.SPONSORED_GAS_FEE_RECIPIENT = oldSponsorshipRecipient;
-  }
-});
-
-test("rejects an invalid configured platform recipient", async () => {
-  const oldRecipient = process.env.PLATFORM_FEE_RECIPIENT;
-  process.env.PLATFORM_FEE_RECIPIENT = "not-an-address";
-  try {
-    await assert.rejects(
-      () => new LifiRouteAdapter().getQuote(request),
-      (error: unknown) =>
-        error instanceof RouteAdapterError && error.code === "invalid_request",
-    );
-  } finally {
-    if (oldRecipient === undefined) delete process.env.PLATFORM_FEE_RECIPIENT;
-    else process.env.PLATFORM_FEE_RECIPIENT = oldRecipient;
-  }
+test("rejects an invalid platform recipient", async () => {
+  await assert.rejects(
+    () => new LifiRouteAdapter("not-an-address" as Address).getQuote(request),
+    (error: unknown) =>
+      error instanceof RouteAdapterError && error.code === "invalid_request",
+  );
 });
 
 test("does not add approval for a native exact-input route", async () => {

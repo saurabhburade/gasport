@@ -6,7 +6,11 @@
     "decimals": 6,
     "symbol": "USDC",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/assets/0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359/logo.png",
-    "coingeckoId": "usd-coin"
+    "coingeckoId": "usd-coin",
+    "chainlinkUsdFeed": {
+      "address": "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7",
+      "heartbeatSeconds": 27
+    }
   },
   {
     "assetId": "nep245:v2_1.omni.hot.tg:137_3hpYoaLtt8MP1Z2GH1U473DMRKgr",
@@ -15,7 +19,11 @@
     "decimals": 6,
     "symbol": "USDT",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/assets/0xc2132D05D31c914a87C6611C10748AEb04B58e8F/logo.png",
-    "coingeckoId": "tether"
+    "coingeckoId": "tether",
+    "chainlinkUsdFeed": {
+      "address": "0x0A6513e40db6EB1b165753AD52E80663aeA50545",
+      "heartbeatSeconds": 27
+    }
   },
   {
     "assetId": "nep245:v2_1.omni.hot.tg:137_2jwTGwKRX3AEe7tyzDrxtDjEFgSt",
@@ -24,6 +32,10 @@
     "decimals": 18,
     "symbol": "WETH",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/assets/0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619/logo.png",
-    "coingeckoId": "ethereum"
+    "coingeckoId": "ethereum",
+    "chainlinkUsdFeed": {
+      "address": "0xF9680D99D6C9589e2a93a78A04A279e509205945",
+      "heartbeatSeconds": 27
+    }
   }
 ]

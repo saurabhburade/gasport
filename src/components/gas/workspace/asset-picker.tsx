@@ -182,17 +182,17 @@ export function AssetPicker({
       {destinationPicker}
       <Dialog open={mode === "token"} onOpenChange={onOpenChange}>
         <DialogContent
-          className="max-h-[min(720px,calc(100vh-2rem))] gap-0 overflow-hidden bg-popover p-0 sm:max-w-[560px]"
+          className="flex h-[min(720px,calc(100dvh-2rem))] gap-0 overflow-hidden bg-popover p-0 sm:grid sm:h-auto sm:max-h-[min(720px,calc(100dvh-2rem))] sm:max-w-[560px]"
           showCloseButton={false}
         >
           <DialogTitle className="sr-only">Select a token</DialogTitle>
           <DialogDescription className="sr-only">
             Choose a network and token to pay with.
           </DialogDescription>
-          <div className="grid min-h-0 grid-cols-1 bg-popover sm:grid-cols-[180px_minmax(0,1fr)]">
-            <aside className="min-h-0 border-b border-border sm:border-b-0 sm:border-r">
-              <div className="border-b border-border px-2 py-2.5">
-                <div className="flex min-h-9 items-center gap-1.5 rounded-2xl bg-secondary px-2">
+          <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] bg-popover sm:grid-cols-[180px_minmax(0,1fr)] sm:grid-rows-1">
+            <aside className="min-h-0 max-h-[35dvh] overflow-y-auto border-b border-border sm:max-h-none sm:overflow-visible sm:border-b-0 sm:border-r">
+              <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-popover px-2 py-2.5 sm:block">
+                <div className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-2xl bg-secondary px-2">
                   <Search className="size-3.5 shrink-0 text-muted-foreground" />
                   <Input
                     aria-label="Search chains"
@@ -202,6 +202,12 @@ export function AssetPicker({
                     value={chainQuery}
                   />
                 </div>
+                <DialogClose
+                  aria-label="Close token picker"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:hidden"
+                >
+                  <X className="size-4" />
+                </DialogClose>
               </div>
               <div className="sm:hidden">
                 {visibleChains.length > 0 ? (
@@ -278,7 +284,7 @@ export function AssetPicker({
               </div>
             </aside>
 
-            <section className="min-h-0">
+            <section className="flex min-h-0 flex-col overflow-hidden sm:block sm:overflow-visible">
               <div className="flex items-center gap-2 border-b border-border px-2 py-2.5">
                 <div className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-2xl bg-secondary px-2">
                   <Search className="size-3.5 shrink-0 text-muted-foreground" />
@@ -293,7 +299,7 @@ export function AssetPicker({
                 </div>
                 <DialogClose
                   aria-label="Close token picker"
-                  className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="hidden size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex"
                 >
                   <X className="size-4" />
                 </DialogClose>
@@ -302,6 +308,7 @@ export function AssetPicker({
               <AnimatePresence initial={false} mode="wait">
                 <motion.div
                   animate={{ opacity: 1, y: 0 }}
+                  className="flex min-h-0 flex-1 flex-col sm:block"
                   exit={{
                     opacity: 0,
                     y: reduceMotion ? 0 : -4,
@@ -351,7 +358,7 @@ export function AssetPicker({
                       selectedToken={token}
                     />
                   ) : (
-                    <p className="flex h-[min(390px,calc(100vh-13rem))] min-h-48 items-center justify-center px-5 text-center text-sm text-muted-foreground">
+                    <p className="flex min-h-0 flex-1 items-center justify-center px-5 text-center text-sm text-muted-foreground sm:h-[min(390px,calc(100dvh-13rem))] sm:min-h-48">
                       No matching tokens on {activeChain?.name}
                     </p>
                   )}

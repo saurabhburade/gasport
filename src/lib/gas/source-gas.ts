@@ -11,8 +11,15 @@ const USD_STABLE_SYMBOLS = new Set([
   "USDF",
 ]);
 
-export function sponsorshipSourceTokenUsd(symbol: string, quotedUsd: number) {
-  return USD_STABLE_SYMBOLS.has(symbol.toUpperCase()) ? 1 : quotedUsd;
+export function isUsdStableToken(symbol: string) {
+  return USD_STABLE_SYMBOLS.has(symbol.toUpperCase());
+}
+
+export function sponsorshipSourceTokenUsd(
+  symbol: string,
+  quotedUsd: string | number,
+) {
+  return isUsdStableToken(symbol) ? 1 : quotedUsd;
 }
 
 export const sourceGasEstimateRequestSchema = z

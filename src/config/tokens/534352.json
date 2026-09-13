@@ -6,6 +6,10 @@
     "decimals": 6,
     "symbol": "USDT",
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/scroll/assets/0xf55BEC9cafDbE8730f096Aa55dad6D22d44099Df/logo.png",
-    "coingeckoId": "tether"
+    "coingeckoId": "tether",
+    "chainlinkUsdFeed": {
+      "address": "0xf376A91Ae078927eb3686D6010a6f1482424954E",
+      "heartbeatSeconds": 86400
+    }
   }
 ]

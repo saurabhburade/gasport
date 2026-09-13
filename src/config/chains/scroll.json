@@ -13,5 +13,9 @@
   "intentsAssetId": "nep245:v2_1.omni.hot.tg:534352_11111111111111111111",
   "explorerUrl": "https://scrollscan.com",
   "publicRpcUrl": "https://rpc.scroll.io",
-  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 }
+  "fees": { "selfFundedBps": 500, "sponsoredBps": 100 },
+  "chainlinkUsdFeed": {
+    "address": "0x6bF14CB0A831078629D993FDeBcB182b21A8774C",
+    "heartbeatSeconds": 86400
+  }
 }
