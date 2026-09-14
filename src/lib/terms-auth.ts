@@ -1,5 +1,6 @@
 import type { SIWXMessage, SIWXSession } from "@reown/appkit";
 import { ReownAuthentication } from "@reown/appkit-controllers/features";
+import { stringToHex } from "viem";
 import { TERMS_VERSION } from "./terms.ts";
 
 type WalletSignInput = {
@@ -7,6 +8,22 @@ type WalletSignInput = {
   chainId: string;
   accountAddress: string;
 };
+
+type WalletProvider = {
+  request(args: {
+    method: string;
+    params?: readonly unknown[];
+  }): Promise<unknown>;
+};
+
+function isWalletProvider(value: unknown): value is WalletProvider {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "request" in value &&
+    typeof value.request === "function"
+  );
+}
 
 function termsUrl(origin: string): string {
   return new URL("/terms", origin).toString();
@@ -45,25 +62,61 @@ function currentOrigin(): string {
 
 export class GasportTermsAuthentication extends ReownAuthentication {
   private readonly walletSigner: (input: WalletSignInput) => Promise<string>;
+  private readonly getWalletProvider?: () => unknown;
 
-  constructor(walletSigner: (input: WalletSignInput) => Promise<string>) {
+  constructor(
+    walletSigner: (input: WalletSignInput) => Promise<string>,
+    getWalletProvider?: () => unknown,
+  ) {
     super({
       localAuthStorageKey: `gasport:reown-auth:${TERMS_VERSION}`,
       localNonceStorageKey: `gasport:reown-nonce:${TERMS_VERSION}`,
       required: true,
     });
     this.walletSigner = walletSigner;
+    this.getWalletProvider = getWalletProvider;
   }
 
   override async createMessage(input: SIWXMessage.Input): Promise<SIWXMessage> {
     return addTermsToMessage(await super.createMessage(input), currentOrigin());
   }
 
-  // AppKit's Wagmi adapter replaces every wallet signing error with the same
-  // generic message. Use the same Wagmi action directly so the real cause is
-  // available when a wallet never opens its signing prompt.
+  // Keep Wagmi's original error unless its cached connection chain disagrees
+  // with the connector. In that case, sign through AppKit's active provider.
   async signMessage(input: WalletSignInput): Promise<string> {
-    return this.walletSigner(input);
+    try {
+      return await this.walletSigner(input);
+    } catch (error) {
+      if (
+        !(error instanceof Error) ||
+        error.name !== "ConnectorChainMismatchError"
+      ) {
+        throw error;
+      }
+      const provider = this.getWalletProvider?.();
+      if (!isWalletProvider(provider)) throw error;
+      const accounts = await provider.request({ method: "eth_accounts" });
+      if (
+        !Array.isArray(accounts) ||
+        !accounts.some(
+          (address) =>
+            typeof address === "string" &&
+            address.toLowerCase() === input.accountAddress.toLowerCase(),
+        )
+      ) {
+        throw new Error(
+          "The connected wallet account changed. Reconnect it and sign the terms again.",
+        );
+      }
+      const signature = await provider.request({
+        method: "personal_sign",
+        params: [stringToHex(input.message), input.accountAddress],
+      });
+      if (typeof signature !== "string" || !/^0x[\da-f]+$/i.test(signature)) {
+        throw new Error("The wallet returned an invalid terms signature.");
+      }
+      return signature;
+    }
   }
 
   override async addSession(session: SIWXSession): Promise<void> {

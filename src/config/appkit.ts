@@ -72,18 +72,20 @@ const appOrigin =
     ? (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000")
     : window.location.origin;
 
-export const appKit =
+export const appKit: ReturnType<typeof createAppKit> | undefined =
   appKitProjectId && wagmiAdapter
     ? createAppKit({
         adapters: [wagmiAdapter],
         projectId: appKitProjectId,
         networks: appKitNetworks,
         defaultNetwork: mainnet,
-        siwx: new GasportTermsAuthentication(({ message, accountAddress }) =>
-          signMessage(wagmiAdapter.wagmiConfig, {
-            message,
-            account: accountAddress as `0x${string}`,
-          }),
+        siwx: new GasportTermsAuthentication(
+          ({ message, accountAddress }) =>
+            signMessage(wagmiAdapter.wagmiConfig, {
+              message,
+              account: accountAddress as `0x${string}`,
+            }),
+          () => appKit?.getWalletProvider(),
         ),
         metadata: {
           name: "Gasport",

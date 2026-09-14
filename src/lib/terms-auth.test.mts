@@ -7,6 +7,7 @@ import {
   OptionsController,
   SIWXUtil,
 } from "@reown/appkit-controllers";
+import { signMessage as wagmiSignMessage } from "wagmi/actions";
 import { TERMS_VERSION } from "./terms.ts";
 import { addTermsToMessage, GasportTermsAuthentication } from "./terms-auth.ts";
 
@@ -73,6 +74,94 @@ test("wallet signing errors retain the provider's actual cause", async () => {
     }),
     (error) => error === providerError,
   );
+});
+
+test("terms signing survives a stale Wagmi connector chain", async () => {
+  const accountAddress = "0x1111111111111111111111111111111111111111";
+  const signature = `0x${"ab".repeat(65)}`;
+  const connector = { getChainId: async () => 1 };
+  const wagmiConfig = {
+    state: {
+      current: "wallet",
+      connections: new Map([
+        ["wallet", { accounts: [accountAddress], chainId: 143, connector }],
+      ]),
+    },
+  } as unknown as Parameters<typeof wagmiSignMessage>[0];
+  const requests: { method: string; params?: readonly unknown[] }[] = [];
+  const provider = {
+    request: async (args: { method: string; params?: readonly unknown[] }) => {
+      const { method } = args;
+      requests.push(args);
+      if (method === "eth_accounts") return [accountAddress];
+      if (method === "personal_sign") return signature;
+      throw new Error(`Unexpected wallet method: ${method}`);
+    },
+  };
+  const auth = new GasportTermsAuthentication(
+    ({ message, accountAddress: account }) =>
+      wagmiSignMessage(wagmiConfig, {
+        message,
+        account: account as `0x${string}`,
+      }),
+    () => provider,
+  );
+
+  assert.equal(
+    await auth.signMessage({
+      message: "Gasport terms",
+      chainId: "eip155:143",
+      accountAddress,
+    }),
+    signature,
+  );
+  assert.deepEqual(requests, [
+    { method: "eth_accounts" },
+    {
+      method: "personal_sign",
+      params: ["0x476173706f7274207465726d73", accountAddress],
+    },
+  ]);
+});
+
+test("chain mismatch fallback never signs for another wallet account", async () => {
+  const accountAddress = "0x1111111111111111111111111111111111111111";
+  const connector = { getChainId: async () => 1 };
+  const wagmiConfig = {
+    state: {
+      current: "wallet",
+      connections: new Map([
+        ["wallet", { accounts: [accountAddress], chainId: 143, connector }],
+      ]),
+    },
+  } as unknown as Parameters<typeof wagmiSignMessage>[0];
+  let signRequests = 0;
+  const auth = new GasportTermsAuthentication(
+    ({ message, accountAddress: account }) =>
+      wagmiSignMessage(wagmiConfig, {
+        message,
+        account: account as `0x${string}`,
+      }),
+    () => ({
+      request: async ({ method }: { method: string }) => {
+        if (method === "eth_accounts") {
+          return ["0x2222222222222222222222222222222222222222"];
+        }
+        signRequests += 1;
+        return `0x${"ab".repeat(65)}`;
+      },
+    }),
+  );
+
+  await assert.rejects(
+    auth.signMessage({
+      message: "Gasport terms",
+      chainId: "eip155:143",
+      accountAddress,
+    }),
+    /connected wallet account changed/,
+  );
+  assert.equal(signRequests, 0);
 });
 
 test("a transaction network change does not reopen terms for the same wallet", async () => {
